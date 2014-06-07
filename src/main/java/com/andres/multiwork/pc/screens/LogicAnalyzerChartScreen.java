@@ -184,7 +184,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             // Decoded data annotations
             for (int n = 0; n < decoder.getDecodedData(channel).size(); ++n) {
                 final TimePosition decodedData = decoder.getDecodedData(channel).get(n);
-                mainChart.addAnnotation(decodedData.getString(), decodedData.startTime(), decodedData.endTime(), yChannel[channel] + bitScale + 4, 2);
+                mainChart.addAnnotation(decodedData.getString(), decodedData.startTime(), decodedData.endTime(), yChannel[channel] + 3*bitScale, 2);
             }
 
             if(channel < GlobalValues.channelsNumber-1) time = initTime;

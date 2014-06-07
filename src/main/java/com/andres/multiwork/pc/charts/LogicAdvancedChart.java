@@ -19,11 +19,9 @@ public class LogicAdvancedChart {
     private Rectangle areaSelector = new Rectangle();
 
     private double width, height, layoutX, layoutY, prevX = -1;
-    private Pane annotationPane = new Pane();
 
     public LogicAdvancedChart(Pane pane){
-        pane.getChildren().addAll(mainChart, smallChart, areaSelector, annotationPane);
-        annotationPane.setMouseTransparent(true);
+        pane.getChildren().addAll(mainChart, smallChart, areaSelector);
 
         smallChart.setTitle("");
         smallChart.getXAxis().setAutoRanging(true);
@@ -114,7 +112,7 @@ public class LogicAdvancedChart {
      * @param height height of the text which is drawn below the y position
      */
     public void addAnnotation(final String text, final double t1, final double t2, final double y, final double height){
-        mainChart.addAnnotation(text, t1, t2, y, height, annotationPane);
+        mainChart.addAnnotation(text, t1, t2, y, height);
     }
 
     /**
@@ -258,24 +256,7 @@ public class LogicAdvancedChart {
          *  updated values according to the current render.
          */
         Platform.runLater(() -> {
-            // Set annotation pane position and add clipping to it so annotations doesn't go over chart plot area
-            Node chartArea = mainChart.lookup(".chart-plot-background");
-            Bounds chartBounds = chartArea.localToScene(chartArea.getBoundsInLocal());
-            Rectangle clippingArea = new Rectangle();
 
-            annotationPane.setLayoutX(0);
-            annotationPane.setLayoutY(0);
-            annotationPane.setPrefWidth(getWidth());
-            annotationPane.setPrefHeight(getHeight() + annotationPane.getBoundsInParent().getMaxY());
-            //annotationPane.setStyle("-fx-border-color: red; -fx-border-width: 4;");
-
-            clippingArea.setLayoutX(chartBounds.getMinX());
-            clippingArea.setLayoutY(chartBounds.getMinY());
-            clippingArea.setWidth(chartBounds.getWidth());
-            clippingArea.setHeight(chartBounds.getHeight());
-
-            // Clip the pane so we can't render outside chart ploting area
-            annotationPane.setClip(clippingArea);
         });
     }
 

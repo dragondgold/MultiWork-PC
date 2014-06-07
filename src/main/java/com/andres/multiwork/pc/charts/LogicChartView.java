@@ -10,6 +10,7 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Rectangle;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -48,9 +49,13 @@ public class LogicChartView extends LineChart {
     private ArrayList<BetterAnnotation> annotations = new ArrayList<>();
     private double prevX;
     private boolean showHoverValues = false;
+    boolean paneAdded = false;
+    private Pane annotationPane = new Pane();
 
     public LogicChartView(){
         super(new NumberAxis(), new NumberAxis());
+
+        annotationPane.setMouseTransparent(true);
 
         for(int n = 0; n < GlobalValues.channelsNumber; ++n){
             channelsSeries[n] = new XYChart.Series<>();
@@ -118,14 +123,13 @@ public class LogicChartView extends LineChart {
      * @param t2 x position of the bottom right corner
      * @param y y position of the top side
      * @param height height of the text which is drawn below the y position
-     * @param pane pane in which we render the annotation
      */
-    public void addAnnotation(String text, double t1, double t2, double y, double height, Pane pane){
+    public void addAnnotation(String text, double t1, double t2, double y, double height){
         if(applyScale){
             BetterAnnotation annotation = new BetterAnnotation(text, t1, y, t2-t1, height);
             annotation.hide();
 
-            pane.getChildren().add(annotation);
+            annotationPane.getChildren().add(annotation);
             annotations.add(annotation);
         }else {
             // TODO: add annotation when we are not applying scale
@@ -185,6 +189,31 @@ public class LogicChartView extends LineChart {
     @Override
     protected void layoutPlotChildren() {
         super.layoutPlotChildren();
+
+        if(!paneAdded) {
+            ((Pane) getParent()).getChildren().add(annotationPane);
+            paneAdded = true;
+        }
+
+        /** Annotations pane setup */
+        // Set annotation pane position and add clipping to it so annotations doesn't go over chart plot area
+        Node chartArea = lookup(".chart-plot-background");
+        Bounds chartBounds = chartArea.localToScene(chartArea.getBoundsInLocal());
+        Rectangle clippingArea = new Rectangle();
+
+        annotationPane.setLayoutX(0);
+        annotationPane.setLayoutY(0);
+        annotationPane.setPrefWidth(getWidth());
+        annotationPane.setPrefHeight(getScene().getHeight());
+        //annotationPane.setStyle("-fx-border-color: red; -fx-border-width: 4;");
+
+        clippingArea.setLayoutX(chartBounds.getMinX());
+        clippingArea.setLayoutY(chartBounds.getMinY());
+        clippingArea.setWidth(chartBounds.getWidth());
+        clippingArea.setHeight(chartBounds.getHeight());
+
+        // Clip the pane so we can't render outside chart plotting area
+        annotationPane.setClip(clippingArea);
 
         // Axis time
         getXAxis().setLabel(timeToLabel(currentScale));

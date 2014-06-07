@@ -93,11 +93,6 @@ public class LogicChartView extends LineChart {
             prevX = mouseEvent.getX();
         });
 
-        // TODO: track mouse movement so we can give realtime information on the chart when pointer hovers on some element
-        setOnMouseMoved(mouseEvent -> {
-
-        });
-
         getXAxis().setAutoRanging(false);
         ((NumberAxis) getXAxis()).setLowerBound(0);
         ((NumberAxis) getXAxis()).setUpperBound(((NumberAxis) getXAxis()).getLowerBound() + toCoordinate(horizontalDivisions * currentScale));
@@ -135,7 +130,6 @@ public class LogicChartView extends LineChart {
         }else {
             // TODO: add annotation when we are not applying scale
         }
-        System.out.println("Annotation text: " + text);
     }
 
     public void addData(int channelNumber, double time, double y){

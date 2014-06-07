@@ -28,7 +28,7 @@ public class LogicAdvancedChart {
         smallChart.setTitle("");
         smallChart.getXAxis().setAutoRanging(true);
         smallChart.getYAxis().setAutoRanging(true);
-        //smallChart.getXAxis().setOpacity(0);
+        smallChart.getXAxis().setOpacity(0);
         smallChart.setLegendVisible(false);
         smallChart.applyScale(false);
 
@@ -38,10 +38,6 @@ public class LogicAdvancedChart {
 
         mainChart.setShowHoverValues(true);
         smallChart.setShowHoverValues(false);
-
-        //mainChart.getYAxis().setAutoRanging(false);
-        //((NumberAxis)mainChart.getYAxis()).setUpperBound(25);
-        //((NumberAxis)mainChart.getYAxis()).setLowerBound(0);
 
         // Scroll zooming
         pane.setOnScroll(scrollEvent -> {

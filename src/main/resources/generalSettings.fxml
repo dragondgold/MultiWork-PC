@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: EDEDED;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<children><Label layoutX="14.0" layoutY="3.0" text="Sampling">
+<font>
+<Font name="Calibri" size="18.0" />
+</font>
+</Label><Separator layoutY="23.0" prefWidth="600.0" /><Separator layoutY="95.0" prefWidth="600.0" /><Label layoutX="14.0" layoutY="75.0" text="General Trigger Control">
+<font>
+<Font name="Calibri" size="18.0" />
+</font>
+</Label><CheckBox fx:id="simpleTriggerGeneral" layoutX="23.7890625" layoutY="105.5" mnemonicParsing="false" text="Enable Simple Trigger" /><Label layoutX="26.0" layoutY="40.0" text="Sample Rate:">
+<font>
+<Font name="Calibri" size="14.0" />
+</font>
+</Label><ChoiceBox fx:id="sampleRateChoice" layoutX="107.0" layoutY="36.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="120.0" />
+</children></AnchorPane>

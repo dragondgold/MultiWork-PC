@@ -93,10 +93,8 @@ public class Utils {
         // layout needs to be taken into account. So each ellipsis option has
         // to take into account two code paths: the easy way and the correct
         // way. This is flagged by the "complexLayout" boolean
-        // TODO make sure this function call takes into account ligatures, kerning,
         // and such as that will change the layout characteristics of the text
         // and will require a full complex layout
-        // TODO since we don't have all the stuff available in FX to determine
         // complex text, I'm going to for now assume complex text is always false.
         final boolean complexLayout = false;
         //requiresComplexLayout(font, text);
@@ -453,7 +451,6 @@ public class Utils {
         }
         boolean complexLayout = requiresComplexLayout(font, text);
         if (complexLayout) {
-            // TODO needs implementation
             return 0;
         } else {
             // just start walking backwards from index until either i<0 or
@@ -482,7 +479,6 @@ public class Utils {
         }
         boolean complexLayout = requiresComplexLayout(font, text);
         if (complexLayout) {
-            // TODO needs implementation
             return text.length();
         } else {
             // just start walking forward from index until either i > length or

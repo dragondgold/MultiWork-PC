@@ -14,6 +14,9 @@ import java.util.TimerTask;
 
 public class LogicAdvancedChart {
 
+    private final double yChannel[] = {1, 8, 15, 22, 29, 36, 43, 50};
+    private final double bitScale = 1.5;
+
     private LogicChartView mainChart = new LogicChartView();
     private LogicChartView smallChart = new LogicChartView();
     private Rectangle areaSelector = new Rectangle();
@@ -98,9 +101,39 @@ public class LogicAdvancedChart {
         });
     }
 
+    /**
+     * Sets mouse events listener to series
+     * @param seriesEvent {@link com.andres.multiwork.pc.charts.SeriesEvent}
+     */
+    public void setSeriesEventListener(SeriesEvent seriesEvent){
+        mainChart.setSeriesEventListener(seriesEvent);
+    }
+
+    /**
+     * Add data to the chart
+     * @param channelNumber channel number where to add the data
+     * @param time time in seconds
+     * @param y y coordinate
+     */
     public void addData(int channelNumber, double time, double y){
         mainChart.addData(channelNumber, time, y);
         smallChart.addData(channelNumber, time, y);
+    }
+
+    /**
+     * Add logic data to the chart
+     * @param channelNumber channel number where to add the data
+     * @param time time in seconds
+     * @param state true or false representing '1' or '0' state
+     */
+    public void addLogicData(int channelNumber, double time, boolean state){
+        if(state) {
+            mainChart.addData(channelNumber, time, yChannel[channelNumber] + bitScale);
+            smallChart.addData(channelNumber, time, yChannel[channelNumber] + bitScale);
+        }else{
+            mainChart.addData(channelNumber, time, yChannel[channelNumber]);
+            smallChart.addData(channelNumber, time, yChannel[channelNumber]);
+        }
     }
 
     /**
@@ -113,6 +146,17 @@ public class LogicAdvancedChart {
      */
     public void addAnnotation(final String text, final double t1, final double t2, final double y, final double height){
         mainChart.addAnnotation(text, t1, t2, y, height);
+    }
+
+    /**
+     * Add an annotation in the chart with a rectangle surrounding the text
+     * @param text annotation text
+     * @param t1 x position of the top left corner
+     * @param t2 x position of the bottom right corner
+     * @param channelNumber channel number where to add the annotation
+     */
+    public void addLogicAnnotation(final String text, final double t1, final double t2, int channelNumber){
+        mainChart.addAnnotation(text, t1, t2, yChannel[channelNumber] + 3*bitScale, 2);
     }
 
     /**

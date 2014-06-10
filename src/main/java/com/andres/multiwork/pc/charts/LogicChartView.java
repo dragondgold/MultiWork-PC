@@ -1,20 +1,24 @@
 package com.andres.multiwork.pc.charts;
 
 import com.andres.multiwork.pc.GlobalValues;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
-import javafx.scene.Node;
+import javafx.scene.*;
 import javafx.scene.chart.Axis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 
 import java.awt.*;
 import java.util.ArrayList;
 
+// TODO: add markers
 public class LogicChartView extends LineChart {
 
     private XYChart.Series<Double, Double>[] channelsSeries = new XYChart.Series[GlobalValues.channelsNumber];
@@ -25,33 +29,57 @@ public class LogicChartView extends LineChart {
             1E-9,		// 1nS
             5E-9,		// 5nS
             10E-9,		// 10nS
+            25E-9,      // 25nS
             50E-9,      // 50nS
+            75E-9,      // 75nS
             100E-9,		// 100nS
             1E-6,		// 1uS
             5E-6,       // 5uS
             10E-6,		// 10uS
+            25E-6,      // 25uS
             50E-6,      // 50uS
+            75E-6,      // 75uS
             100E-6,		// 100uS
             1E-3,		// 1mS
             5E-3,       // 5mS
             10E-3,		// 10mS
+            25E-3,      // 25mS
             50E-3,      // 50mS
+            75E-3,      // 75mS
             100E-3		// 100mS
     };
 
+    /** Number of horizontal division along all the time axis */
     private final int horizontalDivisions = 40;
+
+    /** Current and previous time scale */
     private int currentScaleIndex = 4;
     private int previousScaleIndex = currentScaleIndex;
     private double currentScale = timeScaleValues[currentScaleIndex];
+
+    /** Whether to apply time scale on x axis or not */
     private boolean applyScale = true;
+    /** Listener called when chart is sliding */
     private OnChartSliding onChartSliding;
 
+    /** Annotations list */
     private ArrayList<BetterAnnotation> annotations = new ArrayList<>();
+    /** Previous x coordinate of the pointer (used to slide the chart) */
     private double prevX;
+
+    /** Whether to show a value label when mouse pointer pass through chart node */
     private boolean showHoverValues = false;
+
+    /** Annotation pane used to show various items on the chart */
     boolean paneAdded = false;
     private Pane annotationPane = new Pane();
 
+    private SeriesEvent seriesEvent;
+    private final double seriesMouseThreshold = 30;
+
+    /**
+     * Default constructor
+     */
     public LogicChartView(){
         super(new NumberAxis(), new NumberAxis());
 
@@ -59,7 +87,7 @@ public class LogicChartView extends LineChart {
 
         for(int n = 0; n < GlobalValues.channelsNumber; ++n){
             channelsSeries[n] = new XYChart.Series<>();
-            channelsSeries[n].setName(GlobalValues.resourceBundle.getString("channel") + " " + n);
+            channelsSeries[n].setName(GlobalValues.resourceBundle.getString("channel") + " " + (n+1));
 
             seriesDataSet.add(channelsSeries[n]);
         }
@@ -69,33 +97,35 @@ public class LogicChartView extends LineChart {
         setOnMousePressed(mouseEvent -> prevX = mouseEvent.getX());
 
         setOnMouseDragged(mouseEvent -> {
-            // Chart panning
-            NumberAxis xAxis = ((NumberAxis)getXAxis());
-            double axisWidth = xAxis.getUpperBound() - xAxis.getLowerBound();
+            if(mouseEvent.getButton() == MouseButton.PRIMARY) {
+                // Chart panning
+                NumberAxis xAxis = ((NumberAxis) getXAxis());
+                double axisWidth = xAxis.getUpperBound() - xAxis.getLowerBound();
 
-            Node chartArea = lookup(".chart-plot-background");
-            Bounds chartBounds = chartArea.localToScene(chartArea.getBoundsInLocal());
-            double chartWidth = chartBounds.getWidth();
+                Node chartArea = lookup(".chart-plot-background");
+                Bounds chartBounds = chartArea.localToScene(chartArea.getBoundsInLocal());
+                double chartWidth = chartBounds.getWidth();
 
-            double dragDistance = prevX - mouseEvent.getX();
-            double chartSlideDistance = Math.abs((dragDistance * axisWidth) / chartWidth);
+                double dragDistance = prevX - mouseEvent.getX();
+                double chartSlideDistance = Math.abs((dragDistance * axisWidth) / chartWidth);
 
-            // Mouse dragged to the left
-            if(dragDistance > 0){
-                xAxis.setUpperBound(xAxis.getUpperBound() + chartSlideDistance);
-                xAxis.setLowerBound(xAxis.getLowerBound() + chartSlideDistance);
-            }else {
-                double lowerBound = xAxis.getLowerBound() - chartSlideDistance;
-                if(lowerBound < 0) return;
+                // Mouse dragged to the left
+                if (dragDistance > 0) {
+                    xAxis.setUpperBound(xAxis.getUpperBound() + chartSlideDistance);
+                    xAxis.setLowerBound(xAxis.getLowerBound() + chartSlideDistance);
+                } else {
+                    double lowerBound = xAxis.getLowerBound() - chartSlideDistance;
+                    if (lowerBound < 0) return;
 
-                xAxis.setUpperBound(xAxis.getUpperBound() - chartSlideDistance);
-                xAxis.setLowerBound(lowerBound);
+                    xAxis.setUpperBound(xAxis.getUpperBound() - chartSlideDistance);
+                    xAxis.setLowerBound(lowerBound);
+                }
+
+                if (onChartSliding != null)
+                    onChartSliding.onChartSliding(xAxis.getLowerBound(), xAxis.getUpperBound());
+
+                prevX = mouseEvent.getX();
             }
-
-            if(onChartSliding != null)
-                onChartSliding.onChartSliding(xAxis.getLowerBound(), xAxis.getUpperBound());
-
-            prevX = mouseEvent.getX();
         });
 
         getXAxis().setAutoRanging(false);
@@ -103,14 +133,62 @@ public class LogicChartView extends LineChart {
         ((NumberAxis) getXAxis()).setUpperBound(((NumberAxis) getXAxis()).getLowerBound() + toCoordinate(horizontalDivisions * currentScale));
     }
 
+    public void setSeriesEventListener(SeriesEvent seriesEvent){
+        this.seriesEvent = seriesEvent;
+    }
+
+    /**
+     * Add mouse listener to the passed series creating a certain area around the series so we don't have
+     * to click exactly on the series
+     * @param series series to add the mouse listener
+     */
+    private void addGlowOnMouseOverData(final Series series) {
+        // make the first series in the chart glow when you mouse near it.
+        Node node = series.getNode();
+        if (node != null && node instanceof Path) {
+            final Path path = (Path) node;
+
+            final Path mousingPath = new Path();
+            mousingPath.setStrokeWidth(seriesMouseThreshold);
+            mousingPath.setStroke(javafx.scene.paint.Color.rgb(255, 255, 255, 0.01));
+            Bindings.bindContent(mousingPath.getElements(), path.getElements());
+            ((Group) path.getParent()).getChildren().add(mousingPath);
+
+            // Dispatch events
+            mousingPath.setOnMouseEntered(e -> { if(seriesEvent != null) seriesEvent.onSeriesClick(series, e); });
+            mousingPath.setOnMouseExited(e -> {
+                if (seriesEvent != null) seriesEvent.onSeriesClick(series, e);
+            });
+
+            mousingPath.setOnMouseClicked(e -> {
+                if (seriesEvent != null) seriesEvent.onSeriesClick(series, e);
+            });
+            mousingPath.setOnMouseReleased(e -> {
+                if (seriesEvent != null) seriesEvent.onSeriesClick(series, e);
+            });
+        }
+    }
+
+    /**
+     * Set listener called when chart is slided
+     * @param onChartSliding {@link com.andres.multiwork.pc.charts.OnChartSliding} interface
+     */
     public void setOnChartSliding(OnChartSliding onChartSliding){
         this.onChartSliding = onChartSliding;
     }
 
+    /**
+     * Get the current time scale in seconds
+     * @return current time scale in seconds
+     */
     public double getTimeScale(){
         return currentScale;
     }
 
+    /**
+     * Choose to apply or not scale to the time axis (x axis)
+     * @param applyScale true to apply, false otherwise
+     */
     public void applyScale(boolean applyScale){
         this.applyScale = applyScale;
     }
@@ -125,17 +203,19 @@ public class LogicChartView extends LineChart {
      * @param height height of the text which is drawn below the y position
      */
     public void addAnnotation(String text, double t1, double t2, double y, double height){
-        if(applyScale){
-            BetterAnnotation annotation = new BetterAnnotation(text, t1, y, t2-t1, height);
-            annotation.hide();
+        BetterAnnotation annotation = new BetterAnnotation(text, t1, y, t2-t1, height);
+        annotation.hide();
 
-            annotationPane.getChildren().add(annotation);
-            annotations.add(annotation);
-        }else {
-            // TODO: add annotation when we are not applying scale
-        }
+        annotationPane.getChildren().add(annotation);
+        annotations.add(annotation);
     }
 
+    /**
+     * Add data
+     * @param channelNumber channel number (0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1)
+     * @param time time in seconds which will be displayed with the current scale
+     * @param y y coordinate
+     */
     public void addData(int channelNumber, double time, double y){
         if(applyScale) {
             Data data = new Data<Double, Double>(toCoordinate(time), y);
@@ -181,6 +261,10 @@ public class LogicChartView extends LineChart {
         return showHoverValues;
     }
 
+    /**
+     * Whether to show a value label when mouse pointer pass through chart node
+     * @param showHoverValues true to show, false otherwise
+     */
     public void setShowHoverValues(boolean showHoverValues) {
         this.showHoverValues = showHoverValues;
     }
@@ -191,6 +275,13 @@ public class LogicChartView extends LineChart {
         super.layoutPlotChildren();
 
         if(!paneAdded) {
+            // Add mouse listener to series the first time
+            for(int n = 0; n < GlobalValues.channelsNumber; ++n){
+                // Mouse listeners
+                addGlowOnMouseOverData(channelsSeries[n]);
+                // Line width
+                channelsSeries[n].nodeProperty().get().setStyle("-fx-stroke-width: 2px;");
+            }
             ((Pane) getParent()).getChildren().add(annotationPane);
             paneAdded = true;
         }
@@ -205,7 +296,6 @@ public class LogicChartView extends LineChart {
         annotationPane.setLayoutY(0);
         annotationPane.setPrefWidth(getWidth());
         annotationPane.setPrefHeight(getScene().getHeight());
-        //annotationPane.setStyle("-fx-border-color: red; -fx-border-width: 4;");
 
         clippingArea.setLayoutX(chartBounds.getMinX());
         clippingArea.setLayoutY(chartBounds.getMinY());
@@ -217,11 +307,6 @@ public class LogicChartView extends LineChart {
 
         // Axis time
         getXAxis().setLabel(timeToLabel(currentScale));
-
-        // Line width
-        for(int n = 0; n < GlobalValues.channelsNumber; ++n) {
-            channelsSeries[n].nodeProperty().get().setStyle("-fx-stroke-width: 2px;");
-        }
 
         // Every time the chart is redrawn we have to update annotations positions
         renderAnnotations();
@@ -298,11 +383,19 @@ public class LogicChartView extends LineChart {
             final double y = annotation.getY();
             final double height = annotation.getAnnotationHeight();
 
-            annotation.setLayoutX(xAxis.getDisplayPosition(toCoordinate(t1)) + xShift);
-            annotation.setAnnotationWidth(xAxis.getDisplayPosition(toCoordinate(t2)) - xAxis.getDisplayPosition(toCoordinate(t1)));
+            if(applyScale) {
+                annotation.setLayoutX(xAxis.getDisplayPosition(toCoordinate(t1)) + xShift);
+                annotation.setAnnotationWidth(xAxis.getDisplayPosition(toCoordinate(t2)) - xAxis.getDisplayPosition(toCoordinate(t1)));
 
-            annotation.setLayoutY(yAxis.getDisplayPosition(y) + yShift);
-            annotation.setAnnotationHeight(yAxis.getDisplayPosition(y) - yAxis.getDisplayPosition(y + height));
+                annotation.setLayoutY(yAxis.getDisplayPosition(y) + yShift);
+                annotation.setAnnotationHeight(yAxis.getDisplayPosition(y) - yAxis.getDisplayPosition(y + height));
+            }else{
+                annotation.setLayoutX(xAxis.getDisplayPosition(t1) + xShift);
+                annotation.setAnnotationWidth(xAxis.getDisplayPosition(t2) - xAxis.getDisplayPosition(t1));
+
+                annotation.setLayoutY(yAxis.getDisplayPosition(y) + yShift);
+                annotation.setAnnotationHeight(yAxis.getDisplayPosition(y) - yAxis.getDisplayPosition(y + height));
+            }
             annotation.show();
         }
     }

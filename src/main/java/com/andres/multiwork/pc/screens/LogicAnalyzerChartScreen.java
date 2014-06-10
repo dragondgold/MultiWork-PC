@@ -8,13 +8,12 @@ import com.protocolanalyzer.api.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.effect.Glow;
+import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -24,19 +23,21 @@ import java.io.OutputStream;
 
 public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
-    private LogicAdvancedChart mainChart;
-    private MenuBar menuBar;
+    private final LogicAdvancedChart mainChart;
+    private final MenuBar menuBar;
 
-    final KeyCombination zoomInCombination = new KeyCodeCombination(KeyCode.UP);
-    final KeyCombination zoomOutCombination = new KeyCodeCombination(KeyCode.DOWN);
-    final KeyCombination fullScreenCombination = new KeyCodeCombination(KeyCode.F11);
-    final KeyCombination analyzeCombination = new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN);
+    private final KeyCombination zoomInCombination = new KeyCodeCombination(KeyCode.UP);
+    private final KeyCombination zoomOutCombination = new KeyCodeCombination(KeyCode.DOWN);
+    private final KeyCombination fullScreenCombination = new KeyCodeCombination(KeyCode.F11);
+    private final KeyCombination analyzeCombination = new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN);
 
-    private final double yChannel[] = {1, 8, 15, 22, 29, 36, 43, 50};
-    private final double bitScale = 1.5;
-    private Decoder decoder = new Decoder(GlobalValues.xmlSettings);
+    private final Decoder decoder = new Decoder(GlobalValues.xmlSettings);
 
+    /** Series click listener */
     private OnNewDataReceived onNewDataReceived;
+
+    /** Series context menu on click */
+    private final ContextMenu seriesContextMenu = new ContextMenu();
 
     public LogicAnalyzerChartScreen(final Stage stage, final int width, final int height){
         super(stage);
@@ -53,6 +54,26 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
         setScene(new Scene(pane, width, height));
         buildMenu();
+        buildSeriesContextMenu();
+
+        // Series event listener
+        mainChart.setSeriesEventListener((series, mouseEvent) -> {
+            if("MOUSE_ENTERED".equals(mouseEvent.getEventType().getName())) {
+                series.getNode().setEffect(new Glow(2.5));
+            }
+            if("MOUSE_EXITED".equals(mouseEvent.getEventType().getName())) {
+                series.getNode().setEffect(null);
+            }
+            if("MOUSE_CLICKED".equals(mouseEvent.getEventType().getName())) {
+                if(mouseEvent.getButton() == MouseButton.SECONDARY){
+                    // TODO: action based on click
+                    System.out.println("Clicked series: " + series.getName());
+
+                    seriesContextMenu.getItems().setAll(new MenuItem("Serie: " + series.getName()));
+                    seriesContextMenu.show(getStage(), mouseEvent.getScreenX(), mouseEvent.getScreenY());
+                }
+            }
+        });
     }
 
     private void buildMenu(){
@@ -80,6 +101,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         // Add Menu to MenuBar
         menuBar.getMenus().addAll(menuFile, menuAnalyzer, menuView);
 
+        /** Events */
         menuItemSettings.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
@@ -135,6 +157,10 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         });
     }
 
+    private void buildSeriesContextMenu(){
+        //seriesContextMenu.getItems().addAll(menuBar.getMenus().get(0).getItems());
+    }
+
     /**
      * Updates chart with the new decoded data from {@link com.andres.multiwork.pc.utils.Decoder}
      */
@@ -143,8 +169,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         final double initTime = 0;
         double time = initTime;
 
-        // Draw waveforms in the chart. We only put a point every time signal changes state. On this way we avoid
-        //  adding a large amount of data in the chart slowing down rendering without loosing visual quality of
+        // Draw waveforms in the chart. We only put seriesContextMenu point every time signal changes state. On this way we avoid
+        //  adding seriesContextMenu large amount of data in the chart slowing down rendering without loosing visual quality of
         //  the signal.
         for(int channel = 0; channel < GlobalValues.channelsNumber; ++channel){
             final LogicBitSet bitsData = decoder.getRawData(channel);
@@ -155,8 +181,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                 if(n == 0){
                     bitState = bitsData.get(0);
 
-                    if(bitsData.get(n))mainChart.addData(channel, time, yChannel[channel]+bitScale);
-                    else mainChart.addData(channel, time, yChannel[channel]);
+                    mainChart.addLogicData(channel, time, bitsData.get(n));
 
                 // Found an state change, add this point
                 }else if(bitsData.get(n) != bitState){
@@ -165,17 +190,14 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                     double tTime = time - 1.0d/decoder.getSampleFrequency();
 
                     // Previous state
-                    if(bitsData.get(n-1)) mainChart.addData(channel, tTime, yChannel[channel] + bitScale);
-                    else mainChart.addData(channel, tTime, yChannel[channel]);
+                    mainChart.addLogicData(channel, tTime, bitsData.get(n-1));
 
                     // Current state
-                    if(bitsData.get(n)) mainChart.addData(channel, time, yChannel[channel] + bitScale);
-                    else mainChart.addData(channel, time, yChannel[channel]);
+                    mainChart.addLogicData(channel, time, bitsData.get(n));
 
-                // Add a the final point, doesn't care if the state didn't change
+                // Add seriesContextMenu the final point, doesn't care if the state didn't change
                 }else if(n == (samplesNumber-1)){
-                    if(bitsData.get(n)) mainChart.addData(channel, time, yChannel[channel] + bitScale);
-                    else mainChart.addData(channel, time, yChannel[channel]);
+                    mainChart.addLogicData(channel, time, bitsData.get(n));
                 }
                 // Increment time
                 time += 1.0d/decoder.getSampleFrequency();
@@ -184,7 +206,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             // Decoded data annotations
             for (int n = 0; n < decoder.getDecodedData(channel).size(); ++n) {
                 final TimePosition decodedData = decoder.getDecodedData(channel).get(n);
-                mainChart.addAnnotation(decodedData.getString(), decodedData.startTime(), decodedData.endTime(), yChannel[channel] + 3*bitScale, 2);
+                mainChart.addLogicAnnotation(decodedData.getString(), decodedData.startTime(), decodedData.endTime(), channel);
             }
 
             if(channel < GlobalValues.channelsNumber-1) time = initTime;

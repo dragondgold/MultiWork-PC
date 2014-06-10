@@ -1,6 +1,9 @@
 package com.andres.multiwork.pc.charts;
 
 import com.andres.multiwork.pc.utils.Utils;
+import javafx.event.EventHandler;
+import javafx.scene.effect.Glow;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;

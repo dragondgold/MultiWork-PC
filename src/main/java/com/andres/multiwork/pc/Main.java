@@ -1,7 +1,7 @@
 package com.andres.multiwork.pc;
 
+import com.andres.multiwork.pc.charts.FXUtils;
 import com.andres.multiwork.pc.connection.ConnectionManager;
-import com.andres.multiwork.pc.connection.OnNewDataReceived;
 import com.andres.multiwork.pc.screens.LogicAnalyzerChartScreen;
 import com.andres.multiwork.pc.screens.MultiWorkScreen;
 import com.andres.multiwork.pc.screens.SettingsScreen;
@@ -19,8 +19,6 @@ import javafx.stage.WindowEvent;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Locale;
 import java.util.ResourceBundle;
 

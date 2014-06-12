@@ -39,7 +39,7 @@ public class ExportScreen extends MultiWorkScreen {
                 exporter.setTitle(title.getText());
                 exporter.setDate(datePicker.getEditor().getText());
                 exporter.setDescription(description.getText());
-                exporter.setFileName("D:\\" + fileName.getText());
+                exporter.setFileName(fileName.getText());
                 exporter.setExportData(exportDataCheck.isSelected());
                 exporter.setExportSamples(exportSamplesCheck.isSelected());
 

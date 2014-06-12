@@ -1,7 +1,7 @@
 package com.andres.multiwork.pc;
 
 import com.andres.multiwork.pc.connection.ConnectionManager;
-import com.andres.multiwork.pc.screens.ScreenManager;
+import com.andres.multiwork.pc.utils.ScreenManager;
 import com.protocolanalyzer.api.UARTProtocol;
 import com.protocolanalyzer.api.utils.Configuration;
 import org.apache.commons.configuration.XMLConfiguration;

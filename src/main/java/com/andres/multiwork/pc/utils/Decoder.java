@@ -22,14 +22,38 @@ public class Decoder {
     private LogicBitSet[] channelsData = new LogicBitSet[GlobalValues.channelsNumber];
     private ArrayList<List<TimePosition>> decodedData = new ArrayList<List<TimePosition>>();
 
+    private static Decoder decoderInstance;
+
+    /**
+     * Gets an instance of decoder. Used when Singleton is required. The default {@link org.apache.commons.configuration.XMLConfiguration}
+     * used is {@link com.andres.multiwork.pc.GlobalValues#xmlSettings} but this can be changed using
+     * {@link com.andres.multiwork.pc.utils.Decoder#setSettings(org.apache.commons.configuration.XMLConfiguration)}
+     * @return {@link com.andres.multiwork.pc.utils.Decoder} instance
+     */
+    public synchronized static Decoder getDecoder(){
+        if(decoderInstance == null){
+            decoderInstance = new Decoder(GlobalValues.xmlSettings);
+            return decoderInstance;
+        }
+        return decoderInstance;
+    }
+
+    public Decoder setSettings(XMLConfiguration settings){
+        generalSettings = settings;
+        return this;
+    }
+
     /**
      * Creates a Decoder which takes care of decoding received data in byte[] format according to the
-     * current channel settings in the {@link org.apache.commons.configuration.XMLConfiguration} object passed
+     * current channel settings in the {@link org.apache.commons.configuration.XMLConfiguration} object passed.
+     * If Singleton is intended use {@link Decoder#getDecoder()}
      * @param settings {@link org.apache.commons.configuration.XMLConfiguration} containing channels settings
      */
     public Decoder(XMLConfiguration settings){
+        decoderInstance = this;
+
         generalSettings = settings;
-        int sampleFreq = GlobalValues.xmlSettings.getInt("sampleRate", 4000000);
+        int sampleFreq = generalSettings.getInt("sampleRate", 4000000);
 
         i2CProtocol = new I2CProtocol(sampleFreq, channelsConfigurations, id);
         uartProtocol = new UARTProtocol(sampleFreq, channelsConfigurations, id);

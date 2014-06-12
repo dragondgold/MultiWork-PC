@@ -1,6 +1,5 @@
-package com.andres.multiwork.pc.screens;
+package com.andres.multiwork.pc.utils;
 
-import com.andres.multiwork.pc.screens.MultiWorkScreen;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 

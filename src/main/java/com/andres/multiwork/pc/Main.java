@@ -1,12 +1,13 @@
 package com.andres.multiwork.pc;
 
-import com.andres.multiwork.pc.charts.FXUtils;
 import com.andres.multiwork.pc.connection.ConnectionManager;
+import com.andres.multiwork.pc.screens.ExportScreen;
 import com.andres.multiwork.pc.screens.LogicAnalyzerChartScreen;
-import com.andres.multiwork.pc.screens.MultiWorkScreen;
+import com.andres.multiwork.pc.screens.RawDataScreen;
+import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.andres.multiwork.pc.screens.SettingsScreen;
-import com.andres.multiwork.pc.screens.BuildProcedure;
-import com.andres.multiwork.pc.screens.ScreenManager;
+import com.andres.multiwork.pc.utils.BuildProcedure;
+import com.andres.multiwork.pc.utils.ScreenManager;
 import com.protocolanalyzer.api.utils.Configuration;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -56,14 +57,6 @@ public class Main extends Application {
         // Language strings
         GlobalValues.resourceBundle = ResourceBundle.getBundle("language", new Locale("en"));
 
-        // Finish app when exiting, otherwise UI disappear but the programs keeps running
-        primaryStage.setOnHiding(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent windowEvent) {
-                Platform.exit();
-            }
-        });
-
         // Create connection manager and connect by bluetooth
         GlobalValues.connectionManager = new ConnectionManager();
         //GlobalValues.connectionManager.connectByBluetooth();
@@ -78,7 +71,7 @@ public class Main extends Application {
                 stage.setWidth(800);
                 stage.setHeight(600);
 
-                return new SettingsScreen(stage, GlobalValues.screenWidth, GlobalValues.screenHeight);
+                return new SettingsScreen(stage, 800, 600);
             }
 
             @Override
@@ -97,9 +90,40 @@ public class Main extends Application {
                 multiWorkScreen.show();
             }
         });
+        GlobalValues.screenManager.addScreen("RawDataScreen", new BuildProcedure() {
+            @Override
+            public MultiWorkScreen build() {
+                Stage stage = new Stage();
+                stage.setResizable(false);
+
+                return new RawDataScreen(stage, 350, 510);
+            }
+
+            @Override
+            public void show(Stage stage, MultiWorkScreen multiWorkScreen, Scene scene) {
+                multiWorkScreen.show();
+            }
+        });
+        GlobalValues.screenManager.addScreen("ExportScreen", new BuildProcedure() {
+            @Override
+            public MultiWorkScreen build() {
+                Stage stage = new Stage();
+                stage.setResizable(false);
+
+                return new ExportScreen(stage, 350, 510);
+            }
+
+            @Override
+            public void show(Stage stage, MultiWorkScreen multiWorkScreen, Scene scene) {
+                multiWorkScreen.show();
+            }
+        });
+
 
         GlobalValues.screenManager.build("SettingsScreen");
         GlobalValues.screenManager.buildAndShowScreen("ChartScreen");
+        GlobalValues.screenManager.build("RawDataScreen");
+        GlobalValues.screenManager.build("ExportScreen");
     }
 
     public static void main(String[] args) {

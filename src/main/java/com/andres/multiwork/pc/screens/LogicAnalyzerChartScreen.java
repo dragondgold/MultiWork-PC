@@ -4,6 +4,7 @@ import com.andres.multiwork.pc.charts.LogicAdvancedChart;
 import com.andres.multiwork.pc.connection.OnNewDataReceived;
 import com.andres.multiwork.pc.utils.Decoder;
 import com.andres.multiwork.pc.GlobalValues;
+import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.protocolanalyzer.api.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -16,7 +17,6 @@ import javafx.scene.effect.Glow;
 import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,13 +31,14 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
     private final KeyCombination fullScreenCombination = new KeyCodeCombination(KeyCode.F11);
     private final KeyCombination analyzeCombination = new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN);
 
-    private final Decoder decoder = new Decoder(GlobalValues.xmlSettings);
+    private final Decoder decoder = Decoder.getDecoder().setSettings(GlobalValues.xmlSettings);
 
     /** Series click listener */
     private OnNewDataReceived onNewDataReceived;
 
     /** Series context menu on click */
     private final ContextMenu seriesContextMenu = new ContextMenu();
+    private int currentSelectedSeries = -1;
 
     public LogicAnalyzerChartScreen(final Stage stage, final int width, final int height){
         super(stage);
@@ -69,7 +70,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                     // TODO: action based on click
                     System.out.println("Clicked series: " + series.getName());
 
-                    seriesContextMenu.getItems().setAll(new MenuItem("Serie: " + series.getName()));
+                    currentSelectedSeries = Character.getNumericValue(series.getName().charAt(series.getName().length()-1));
                     seriesContextMenu.show(getStage(), mouseEvent.getScreenX(), mouseEvent.getScreenY());
                 }
             }
@@ -115,8 +116,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                 //GlobalValues.connectionManager.getLogicAnalyzerManager().startCapture();
 
                 LogicBitSet data, clk;
-                data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 2);
-                clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 2);
+                data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 3);
+                clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 3);
 
                 byte[] buffer = Decoder.bitSetToBuffer(data, clk);
                 decoder.setData(buffer);
@@ -149,16 +150,31 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         GlobalValues.connectionManager.addDataReceivedListener(onNewDataReceived);
 
         // Remove listener when we close the window
-        getStage().setOnHiding(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                GlobalValues.connectionManager.removeDataReceivedListener(onNewDataReceived);
-            }
+        getStage().setOnHiding(event -> {
+            GlobalValues.connectionManager.removeDataReceivedListener(onNewDataReceived);
         });
     }
 
     private void buildSeriesContextMenu(){
-        //seriesContextMenu.getItems().addAll(menuBar.getMenus().get(0).getItems());
+        MenuItem rawDataItem = new MenuItem(GlobalValues.resourceBundle.getString("rawData"));
+        MenuItem exportItem = new MenuItem(GlobalValues.resourceBundle.getString("exportChannel"));
+        MenuItem exportAllItem = new MenuItem(GlobalValues.resourceBundle.getString("exportAllChannels"));
+
+        seriesContextMenu.getItems().addAll(rawDataItem, exportItem, exportAllItem);
+
+        rawDataItem.setOnAction(event -> {
+            ((RawDataScreen)GlobalValues.screenManager.getScreen("RawDataScreen")).setChannelToShow(currentSelectedSeries);
+            GlobalValues.screenManager.show("RawDataScreen");
+        });
+
+        exportItem.setOnAction(event -> {
+            ((ExportScreen)GlobalValues.screenManager.getScreen("ExportScreen")).setChannelToExport(currentSelectedSeries);
+            GlobalValues.screenManager.show("ExportScreen");
+        });
+
+        exportAllItem.setOnAction(event -> {
+            GlobalValues.screenManager.show("ExportScreen");
+        });
     }
 
     /**

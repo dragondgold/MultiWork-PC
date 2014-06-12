@@ -1,7 +1,5 @@
-package com.andres.multiwork.pc.screens;
+package com.andres.multiwork.pc.utils;
 
-import com.andres.multiwork.pc.screens.BuildProcedure;
-import com.andres.multiwork.pc.screens.MultiWorkScreen;
 import java.util.HashMap;
 
 public class ScreenManager {
@@ -35,6 +33,10 @@ public class ScreenManager {
 
     public void addScreen(String tag, BuildProcedure buildProcedure){
         buildProcedureMap.put(tag, buildProcedure);
+    }
+
+    public MultiWorkScreen getScreen(String tag){
+        return screenMap.get(tag);
     }
 
 }

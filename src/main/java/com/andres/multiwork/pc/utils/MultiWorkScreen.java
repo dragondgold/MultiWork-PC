@@ -1,4 +1,4 @@
-package com.andres.multiwork.pc.screens;
+package com.andres.multiwork.pc.utils;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;

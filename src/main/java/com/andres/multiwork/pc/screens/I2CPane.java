@@ -47,15 +47,21 @@ public class I2CPane extends SettingsPane {
 
     @Override
     public void enable() {
+        // Use disable() first just in case enabled() is called again without calling disable() first so when we are
+        //  updating the settings all the listener will start acting because they are enabled.
+        disable();
+
         // Update the settings according to the preferences loaded. Preferences like protocols are stored with an integer constant value
         //  stored in 'GlobalValues' class.
-        int clockChannel = GlobalValues.xmlSettings.getInt("clock" + getChannel(), 8);
+        int clockChannel = GlobalValues.xmlSettings.getInt("clock" + getChannel(), GlobalValues.channelDisabled);
 
         // Generate clock channels according to current channelNumber. If we are on Channel 1, it can't be a clock channel so
         //  we generate all others channels but channel 1.
         ObservableList<String> clockChannelsList = FXCollections.observableArrayList();
+
+        clockChannelsList.add(GlobalValues.resourceBundle.getString("channelDisabled"));
         for(int n = 1; n <= GlobalValues.channelsNumber; ++n){
-            if(n != getChannel()) clockChannelsList.add(GlobalValues.resourceBundle.getString("channel") + " " + n);
+            if(n != (getChannel()+1)) clockChannelsList.add(GlobalValues.resourceBundle.getString("channel") + " " + n);
         }
         choiceClockChannel.setItems(clockChannelsList);
 

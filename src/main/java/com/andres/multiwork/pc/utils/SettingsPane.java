@@ -18,7 +18,7 @@ public abstract class SettingsPane{
 
     /**
      * Notify channel changed
-     * @param newChannel channel number from 1 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}
+     * @param newChannel channel number from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      */
     public void notifiyChannelChanged(int newChannel){
         channel = newChannel;

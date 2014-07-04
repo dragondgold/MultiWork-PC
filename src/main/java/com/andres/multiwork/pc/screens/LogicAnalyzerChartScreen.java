@@ -169,12 +169,12 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         seriesContextMenu.getItems().addAll(rawDataItem, exportItem, exportAllItem);
 
         rawDataItem.setOnAction(event -> {
-            ((RawDataScreen)GlobalValues.screenManager.getScreen("RawDataScreen")).setChannelToShow(currentSelectedSeries);
+            ((RawDataScreen)GlobalValues.screenManager.getScreen("RawDataScreen")).setChannelToShow(currentSelectedSeries-1);
             GlobalValues.screenManager.show("RawDataScreen");
         });
 
         exportItem.setOnAction(event -> {
-            ((ExportScreen)GlobalValues.screenManager.getScreen("ExportScreen")).setChannelToExport(currentSelectedSeries);
+            ((ExportScreen)GlobalValues.screenManager.getScreen("ExportScreen")).setChannelToExport(currentSelectedSeries-1);
             GlobalValues.screenManager.show("ExportScreen");
         });
 

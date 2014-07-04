@@ -75,6 +75,10 @@ public class UARTPane extends SettingsPane {
 
     @Override
     public void enable() {
+        // Use disable() first just in case enabled() is called again without calling disable() first so when we are
+        //  updating the settings all the listener will start acting because they are enabled.
+        disable();
+
         int parity = GlobalValues.xmlSettings.getInt("parity" + getChannel(), GlobalValues.parityNone);
         int baudRate = GlobalValues.xmlSettings.getInt("baudRate" + getChannel(), 9600);
 

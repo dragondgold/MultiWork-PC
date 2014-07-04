@@ -50,8 +50,12 @@ public class RawDataScreen extends MultiWorkScreen {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
+    /**
+     * Set channel to show
+     * @param channelNumber channel number from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
+     */
     public void setChannelToShow(int channelNumber){
-        int channelToShow = channelNumber - 1;
+        int channelToShow = channelNumber;
         getStage().setTitle(GlobalValues.resourceBundle.getString("channel") + " " + (channelToShow+1));
 
         decodedTableItems.clear();

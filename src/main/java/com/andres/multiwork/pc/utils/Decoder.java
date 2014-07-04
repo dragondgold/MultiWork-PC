@@ -11,6 +11,7 @@ public class Decoder {
 
     private I2CProtocol i2CProtocol;
     private UARTProtocol uartProtocol;
+    private SPIProtocol spiProtocol;
     private Clock clockProtocol;
 
     private XMLConfiguration generalSettings;
@@ -54,11 +55,16 @@ public class Decoder {
         i2CProtocol = new I2CProtocol(sampleFreq);
         uartProtocol = new UARTProtocol(sampleFreq);
         clockProtocol = new Clock(sampleFreq);
+        spiProtocol = new SPIProtocol(sampleFreq);
 
         // Init channels data
         for(int n = 0; n < channelsData.length; ++n){
             channelsData[n] = new LogicBitSet();
+
+            // Just add empty items to the list so we can replace them later
+            decodedData.add(new ArrayList<TimePosition>());
         }
+
     }
 
     /**
@@ -71,7 +77,7 @@ public class Decoder {
 
     /**
      * Gets the decoded data from the selected channel
-     * @param channelNumber channel number from which retrieve decoded data
+     * @param channelNumber channel number from which retrieve decoded data from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      * @return {@link java.util.List} containing decoded data in every {@link com.protocolanalyzer.api.TimePosition} object
      */
     public List<TimePosition> getDecodedData(int channelNumber){
@@ -89,7 +95,7 @@ public class Decoder {
 
     /**
      * Gets the raw data (bits from the logic analyzer) from the specified channel.
-     * @param channelNumber channel number from which retrieve the data
+     * @param channelNumber channel number from which retrieve the data from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      * @return {@link com.protocolanalyzer.api.LogicBitSet} containing the bits of the specified channel
      */
     public LogicBitSet getRawData(int channelNumber){
@@ -138,7 +144,7 @@ public class Decoder {
     /**
      * Decode the selected channel with the current settings saved in the {@link org.apache.commons.configuration.XMLConfiguration}
      * object passed in the constructor
-     * @param channelNumber channel number to be decoded
+     * @param channelNumber channel number to be decoded from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      */
     public void decode (int channelNumber){
         int protocol = generalSettings.getInt("protocol" + channelNumber, GlobalValues.uartProtocol);
@@ -146,7 +152,8 @@ public class Decoder {
 
         switch (protocol){
             case GlobalValues.i2cProtocol:
-                int clockNumber = generalSettings.getInt("clock" + channelNumber);
+                int clockNumber = generalSettings.getInt("clock" + channelNumber, GlobalValues.channelDisabled);
+                if(clockNumber == GlobalValues.channelDisabled) return;
 
                 // Set sample rate
                 i2CProtocol.setSampleFrequency(sampleRate);
@@ -159,13 +166,7 @@ public class Decoder {
 
                 // Decode and store the data
                 i2CProtocol.decode(0);
-                try {
-                    if (decodedData.get(channelNumber) != null) {
-                        decodedData.set(channelNumber, i2CProtocol.getDecodedData());
-                    }
-                } catch (IndexOutOfBoundsException e){
-                    decodedData.add(channelNumber, i2CProtocol.getDecodedData());
-                }
+                decodedData.set(channelNumber, i2CProtocol.getDecodedData());
                 break;
 
             case GlobalValues.uartProtocol:
@@ -186,13 +187,28 @@ public class Decoder {
 
                 // Decode and store the data
                 uartProtocol.decode(0);
-                try {
-                    if (decodedData.get(channelNumber) != null) {
-                        decodedData.set(channelNumber, uartProtocol.getDecodedData());
-                    }
-                } catch (IndexOutOfBoundsException e){
-                    decodedData.add(channelNumber, uartProtocol.getDecodedData());
-                }
+                decodedData.set(channelNumber, uartProtocol.getDecodedData());
+                break;
+
+            case GlobalValues.spiProtocol:
+                int clockChannel = GlobalValues.xmlSettings.getInt("clockSPI" + channelNumber, GlobalValues.channelDisabled);
+                boolean cpol = GlobalValues.xmlSettings.getBoolean("cpolSPI", false);
+                boolean cpha = GlobalValues.xmlSettings.getBoolean("cphaSPI", false);
+
+                // We need a clock channel
+                if(clockChannel == GlobalValues.channelDisabled) return;
+
+                spiProtocol.setCPOL(cpol);
+                spiProtocol.setCPHA(cpha);
+                spiProtocol.setClockSource(clockProtocol);
+
+                spiProtocol.setChannelBitsData(channelsData[channelNumber]);
+                spiProtocol.setClockSource(clockProtocol);
+                clockProtocol.setChannelBitsData(channelsData[clockChannel]);
+
+                // Decode and store the data
+                spiProtocol.decode(0);
+                decodedData.set(channelNumber, spiProtocol.getDecodedData());
                 break;
 
             default:

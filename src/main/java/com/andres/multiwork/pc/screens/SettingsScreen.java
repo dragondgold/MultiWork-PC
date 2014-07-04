@@ -59,6 +59,7 @@ public class SettingsScreen extends MultiWorkScreen {
             // Pane corresponding to each protocol and general settings
             settingsPaneList.add(new I2CPane(I2C_PANE));
             settingsPaneList.add(new UARTPane(UART_PANE));
+            settingsPaneList.add(new SPIPane(SPI_PANE));
             settingsPaneList.add(new GeneralPane(GENERAL_SETTINGS));
 
             setScene(new Scene(mainScreen, width, height));
@@ -68,7 +69,7 @@ public class SettingsScreen extends MultiWorkScreen {
 
             // Notify panes that channel number changed!
             for (SettingsPane p : settingsPaneList){
-                p.notifiyChannelChanged(currentChannel + 1);
+                p.notifiyChannelChanged(currentChannel);
             }
             protocolToPane(GlobalValues.xmlSettings.getInt("protocol" + currentChannel, GlobalValues.uartProtocol));
         } catch (IOException e) { e.printStackTrace(); }
@@ -100,6 +101,9 @@ public class SettingsScreen extends MultiWorkScreen {
                 break;
             case GlobalValues.uartProtocol:
                 showPane(UART_PANE);
+                break;
+            case GlobalValues.spiProtocol:
+                showPane(SPI_PANE);
                 break;
         }
     }
@@ -144,21 +148,21 @@ public class SettingsScreen extends MultiWorkScreen {
         }
 
         listView.setItems(channelsList);
-        listView.getSelectionModel().select(1);
+        listView.getSelectionModel().select(1);     // Select the first channel
         listView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
             if(newValue.contains(GlobalValues.resourceBundle.getString("general"))){
                 showPane(GENERAL_SETTINGS);
                 return;
             }
 
-            int index = Character.getNumericValue(newValue.charAt(newValue.length() - 1));
             // Channels go from 0 to (GlobalValues.channelsNumber-1)
+            int index = Character.getNumericValue(newValue.charAt(newValue.length() - 1));
             currentChannel = index - 1;
             loadChannelSettings(currentChannel);
 
             // Notify panes that channel number changed!
             for (SettingsPane p : settingsPaneList){
-                p.notifiyChannelChanged(index);
+                p.notifiyChannelChanged(currentChannel);
             }
             protocolToPane(GlobalValues.xmlSettings.getInt("protocol" + currentChannel, GlobalValues.uartProtocol));
         });
@@ -234,7 +238,7 @@ public class SettingsScreen extends MultiWorkScreen {
     /**
      * Sets the preferences screen for the selected channel loading the saved settings. If no settings are available
      *  default values are loaded.
-     * @param channelNumber channel number from 0 to (GlobalValues.channelsNumber-1)
+     * @param channelNumber channel number from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      */
     private void loadChannelSettings(int channelNumber) {
         // Remove change listener while setting the preference values, otherwise they will be called while we set the values

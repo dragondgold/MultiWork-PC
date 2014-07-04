@@ -24,7 +24,7 @@ public class ExportScreen extends MultiWorkScreen {
     private TextField fileName;
     private Button filePickButton;
 
-    private int channelToExport = -1;
+    private int channelToExport = 0;
 
     public ExportScreen(final Stage stage, final int width, final int height) {
         super(stage);
@@ -71,8 +71,12 @@ public class ExportScreen extends MultiWorkScreen {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
+    /**
+     * Set the channel to export
+     * @param channelNumber channel number from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
+     */
     public void setChannelToExport(int channelNumber){
-        channelToExport = channelNumber - 1;
+        channelToExport = channelNumber;
         getStage().setTitle(GlobalValues.resourceBundle.getString("channel") + " " + (channelToExport+1));
     }
 

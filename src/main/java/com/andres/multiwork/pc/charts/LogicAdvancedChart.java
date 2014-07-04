@@ -122,7 +122,7 @@ public class LogicAdvancedChart {
 
     /**
      * Add logic data to the chart
-     * @param channelNumber channel number where to add the data
+     * @param channelNumber channel number where to add the data from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}
      * @param time time in seconds
      * @param state true or false representing '1' or '0' state
      */

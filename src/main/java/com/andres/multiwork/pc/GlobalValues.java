@@ -3,7 +3,6 @@ package com.andres.multiwork.pc;
 import com.andres.multiwork.pc.connection.ConnectionManager;
 import com.andres.multiwork.pc.utils.ScreenManager;
 import com.protocolanalyzer.api.UARTProtocol;
-import com.protocolanalyzer.api.utils.Configuration;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.util.ResourceBundle;
@@ -15,7 +14,6 @@ public final class GlobalValues {
 
     public static ScreenManager screenManager;
     public static XMLConfiguration xmlSettings;
-    public static Configuration channelsSettings;
     public static ResourceBundle resourceBundle;
 
     public static ConnectionManager connectionManager;
@@ -24,6 +22,8 @@ public final class GlobalValues {
     public static final int i2cProtocol = 50;
     public static final int uartProtocol = 51;
     public static final int clockProtocol = 52;
+    public static final int spiProtocol = 53;
+    public static final int oneWireProtocol = 54;
 
     public static final int parityEven = UARTProtocol.Parity.Even.ordinal();
     public static final int parityOdd = UARTProtocol.Parity.Odd.ordinal();

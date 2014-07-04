@@ -4,8 +4,6 @@ import com.andres.multiwork.pc.GlobalValues;
 import com.andres.multiwork.pc.utils.Decoder;
 import com.andres.multiwork.pc.utils.Exporter;
 import com.andres.multiwork.pc.utils.MultiWorkScreen;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;

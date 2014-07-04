@@ -8,15 +8,11 @@ import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.andres.multiwork.pc.screens.SettingsScreen;
 import com.andres.multiwork.pc.utils.BuildProcedure;
 import com.andres.multiwork.pc.utils.ScreenManager;
-import com.protocolanalyzer.api.utils.Configuration;
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.File;
@@ -50,9 +46,6 @@ public class Main extends Application {
 
         GlobalValues.xmlSettings.load();
         GlobalValues.xmlSettings.setAutoSave(true);
-
-        // Channels settings
-        GlobalValues.channelsSettings = new Configuration();
 
         // Language strings
         GlobalValues.resourceBundle = ResourceBundle.getBundle("language", new Locale("en"));

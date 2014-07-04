@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: EDEDED;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<children>
+<Label layoutX="10.0" layoutY="2.0" text="UART/USART">
+<font>
+<Font name="Calibri" size="18.0" />
+</font>
+</Label>
+<TextField fx:id="baudRateText" layoutX="94.0" layoutY="46.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="110.0" promptText="Baud rate..." />
+<Label layoutX="26.0" layoutY="50.0" text="Baud Rate:">
+<font>
+<Font name="Calibri" size="14.0" />
+</font>
+</Label>
+<CheckBox fx:id="nineBitsModeCheck" layoutX="480.0" layoutY="50.0" mnemonicParsing="false" text="9 bits mode" />
+<CheckBox fx:id="twoStopBitsCheck" layoutX="480.0" layoutY="75.0" mnemonicParsing="false" text="2 stop bits" />
+<Label layoutX="26.0" layoutY="83.0" text="Parity:">
+<font>
+<Font name="Calibri" size="14.0" />
+</font>
+</Label>
+<ChoiceBox fx:id="choiceParity" layoutX="94.0" layoutY="79.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="110.0" /><Separator layoutY="23.0" prefWidth="600.0" />
+</children>
+</AnchorPane>

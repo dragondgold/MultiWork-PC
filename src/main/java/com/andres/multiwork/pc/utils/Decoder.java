@@ -2,7 +2,6 @@ package com.andres.multiwork.pc.utils;
 
 import com.andres.multiwork.pc.GlobalValues;
 import com.protocolanalyzer.api.*;
-import com.protocolanalyzer.api.utils.Configuration;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.util.ArrayList;
@@ -10,13 +9,10 @@ import java.util.List;
 
 public class Decoder {
 
-    private final int id = 1;
-
     private I2CProtocol i2CProtocol;
     private UARTProtocol uartProtocol;
     private Clock clockProtocol;
 
-    private Configuration channelsConfigurations = new Configuration();
     private XMLConfiguration generalSettings;
 
     private LogicBitSet[] channelsData = new LogicBitSet[GlobalValues.channelsNumber];
@@ -55,9 +51,9 @@ public class Decoder {
         generalSettings = settings;
         int sampleFreq = generalSettings.getInt("sampleRate", 4000000);
 
-        i2CProtocol = new I2CProtocol(sampleFreq, channelsConfigurations, id);
-        uartProtocol = new UARTProtocol(sampleFreq, channelsConfigurations, id);
-        clockProtocol = new Clock(sampleFreq, channelsConfigurations, id);
+        i2CProtocol = new I2CProtocol(sampleFreq);
+        uartProtocol = new UARTProtocol(sampleFreq);
+        clockProtocol = new Clock(sampleFreq);
 
         // Init channels data
         for(int n = 0; n < channelsData.length; ++n){
@@ -180,10 +176,10 @@ public class Decoder {
                 boolean nineBitsMode = generalSettings.getBoolean("nineBitsMode" + channelNumber, false);
                 boolean twoStopBits = generalSettings.getBoolean("twoStopBits" + channelNumber, false);
 
-                channelsConfigurations.setProperty("BaudRate" + id, baudRate);
-                channelsConfigurations.setProperty("nineData" + id, nineBitsMode);
-                channelsConfigurations.setProperty("dualStop" + id, twoStopBits);
-                channelsConfigurations.setProperty("Parity" + id, parity);
+                uartProtocol.setBaudRate(baudRate);
+                uartProtocol.set9BitsMode(nineBitsMode);
+                uartProtocol.setTwoStopBits(twoStopBits);
+                uartProtocol.setParity(UARTProtocol.Parity.values()[parity]);
 
                 // Set channel data
                 uartProtocol.setChannelBitsData(channelsData[channelNumber]);

@@ -163,7 +163,7 @@ public class LogicAnalyzerManager implements Manager{
                         System.out.println("Received data length: " + byteArrayBuffer.length());
 
                         // Decode compressed data with Run Length algorithm
-                        dataBuffer = LogicHelper.runLenghtDecode(byteArrayBuffer);
+                        dataBuffer = LogicHelper.runLengthDecode(byteArrayBuffer);
                         System.out.println("Received data full lenght: " + dataBuffer.length);
 
                         // Check if checksum matches

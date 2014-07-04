@@ -77,6 +77,9 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         });
     }
 
+    /**
+     * Build MenuBar menus
+     */
     private void buildMenu(){
         menuBar.setPrefWidth(GlobalValues.screenWidth);
 
@@ -155,6 +158,9 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         });
     }
 
+    /**
+     * Build context menu showed when clicking series
+     */
     private void buildSeriesContextMenu(){
         MenuItem rawDataItem = new MenuItem(GlobalValues.resourceBundle.getString("rawData"));
         MenuItem exportItem = new MenuItem(GlobalValues.resourceBundle.getString("exportChannel"));

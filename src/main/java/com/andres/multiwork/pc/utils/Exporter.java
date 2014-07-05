@@ -1,5 +1,6 @@
 package com.andres.multiwork.pc.utils;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import com.protocolanalyzer.api.LogicBitSet;
 import com.protocolanalyzer.api.TimePosition;
 
@@ -18,7 +19,7 @@ public class Exporter {
     private String title = "";
 
     private final String dataSuffix = "-data.txt";
-    private final String samplesSuffix = "-samples.txt";
+    private final String samplesSuffix = "-samples.csv";
 
     private String fileName = "exported_data";
 
@@ -41,23 +42,23 @@ public class Exporter {
     }
 
     /**
-     * Export samples taken from the logic analyzer to a txt file. First a header is created containing title, date
-     *  and description. Then, two columns are created separated using two tabulators ("\t\t"). The left column contains
-     *  the sample number starting form 0. The right column contains the character '1' or '0' according to the state
-     *  of the channel at the given sample.
+     * Export samples taken from the logic analyzer to a CSV file. Two columns are created separated
+     *  using commas.
+     * The left column contains the sample number starting from 0. The right column contains the character
+     *  '1' or '0' according to the state of the channel at the given sample.
      */
     private void exportSamples(){
         if(isExportSamples() && samplesData != null){
             try {
 
-                BufferedWriter writer = new BufferedWriter(new FileWriter(new File(fileName + samplesSuffix)));
-                writeHeader(writer);
+                CSVWriter writer = new CSVWriter(new FileWriter(new File(fileName + samplesSuffix)), ',', CSVWriter.NO_QUOTE_CHARACTER);
 
-                // Write bit index and then bit value using char '1' or '0' separated using two tabulators '\t\t'
+                // Write bit index and then bit value using char '1' or '0' separated using ','
                 for(int n = 0; n < samplesData.length(); n++){
                     char bit = (samplesData.get(n)) ? '1' : '0';
-                    writer.write(n + "\t\t" + bit);
-                    writer.write('\n');
+                    String[] entries = (n + "#" + bit).split("#");
+
+                    writer.writeNext(entries);
                 }
 
                 writer.flush();

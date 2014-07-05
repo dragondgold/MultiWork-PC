@@ -2,61 +2,28 @@ package com.andres.multiwork.pc.connection;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 
-public class ConnectionManager {
+public interface ConnectionManager {
 
-    // Connections
-    private BluetoothConnection bluetoothConnection;
+    /**
+     * Starts a capture from the hardware, example: logic analyzer, frecuencimeter, etc.
+     */
+    public void startCapture();
 
-    // Managers
-    private LogicAnalyzerManager logicAnalyzerManager;
+    /**
+     * Used when new data arrives from whatever protocol we choose
+     */
+    public void onNewDataReceived(InputStream input, OutputStream output);
 
-    // Event
-    private ArrayList<OnNewDataReceived> listeners = new ArrayList<>();
+    /**
+     * Indicates what mode we are entering to the hardware
+     */
+    public void enterMode();
 
-    public void addDataReceivedListener(OnNewDataReceived onNewDataReceived){
-        listeners.add(onNewDataReceived);
-    }
+    /**
+     * Indicates we are leaving the current mode
+     */
+    public void exitMode();
 
-    public void removeDataReceivedListener(OnNewDataReceived onNewDataReceived){
-        listeners.remove(onNewDataReceived);
-    }
-
-    public void connectByBluetooth(){
-        bluetoothConnection = new BluetoothConnection(new BluetoothEvent() {
-            @Override
-            public void onBluetoothConnected(InputStream inputStream, OutputStream outputStream) {
-                logicAnalyzerManager = new LogicAnalyzerManager(inputStream, outputStream, logicAnalyzerReceiver);
-            }
-
-            @Override
-            public void onBluetoothDataReceived(InputStream inputStream, OutputStream outputStream) {
-                logicAnalyzerManager.onNewDataReceived(inputStream, outputStream);
-            }
-        });
-        bluetoothConnection.startConnection("linvor");
-    }
-
-    private OnNewDataReceived logicAnalyzerReceiver = new OnNewDataReceived() {
-        @Override
-        public void onNewDataReceived(byte[] data, InputStream inputStream, OutputStream outputStream, String source) {
-            notifyListeners(data, inputStream, outputStream, source);
-        }
-    };
-
-    public void notifyListeners(byte[] data, InputStream inputStream, OutputStream outputStream, String source){
-        for(OnNewDataReceived listener : listeners){
-            listener.onNewDataReceived(data, inputStream, outputStream, source);
-        }
-    }
-
-    public LogicAnalyzerManager getLogicAnalyzerManager(){
-        return logicAnalyzerManager;
-    }
-
-    public void connectByUSB(){
-        //TODO: USB connection
-    }
-
+    public String getID();
 }

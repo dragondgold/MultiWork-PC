@@ -14,6 +14,7 @@ public class BluetoothConnection implements Runnable {
     private final Vector<RemoteDevice> devicesDiscovered = new Vector<>();
     private RemoteDevice selectedDevice;
     private String btName;
+    private boolean keepRunning = true;
 
 	public BluetoothConnection(BluetoothEvent bluetoothEvent) {
         this.bluetoothEvent = bluetoothEvent;
@@ -69,6 +70,10 @@ public class BluetoothConnection implements Runnable {
         }
     }
 
+    public void closeConnection(){
+        keepRunning = false;
+    }
+
 	@Override
 	public void run() {
 		connectToDevice();
@@ -100,17 +105,18 @@ public class BluetoothConnection implements Runnable {
 		}
 		
 		// Wait for connection
-		while(true) {
+        BluetoothListenThread processThread = null;
+		while(keepRunning) {
 			try {
 				System.out.println("Waiting for connection...");
 	            connection = notifier.acceptAndOpen();
 
-	            Thread processThread = new Thread(new BluetoothListenThread(connection, bluetoothEvent));
-	            processThread.start();
+                processThread = new BluetoothListenThread(connection, bluetoothEvent);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;
 			}
 		}
+        if(processThread != null) processThread.stopConnection();
 	}
 }

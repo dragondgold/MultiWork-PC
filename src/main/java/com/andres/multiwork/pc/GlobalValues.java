@@ -1,6 +1,6 @@
 package com.andres.multiwork.pc;
 
-import com.andres.multiwork.pc.connection.ConnectionManager;
+import com.andres.multiwork.pc.connection.MultiConnectionManager;
 import com.andres.multiwork.pc.utils.ScreenManager;
 import com.protocolanalyzer.api.UARTProtocol;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -16,7 +16,7 @@ public final class GlobalValues {
     public static XMLConfiguration xmlSettings;
     public static ResourceBundle resourceBundle;
 
-    public static ConnectionManager connectionManager;
+    public static MultiConnectionManager multiConnectionManager;
 
     public static final int channelDisabled = -1;
     public static final int i2cProtocol = 50;

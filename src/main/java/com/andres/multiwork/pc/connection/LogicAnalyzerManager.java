@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class LogicAnalyzerManager implements Manager{
+public class LogicAnalyzerManager implements ConnectionManager {
 
     private static final byte F40MHz =  'A';
     private static final byte F20MHz =  'S';
@@ -72,7 +72,7 @@ public class LogicAnalyzerManager implements Manager{
     }
 
     @Override
-    public void onNewDataReceived(InputStream inputStream, OutputStream outputStream) {
+    public void onNewDataReceived(InputStream input, OutputStream output) {
         handleReceivedData();
     }
 
@@ -87,7 +87,13 @@ public class LogicAnalyzerManager implements Manager{
     public void exitMode() {
         try {
             outputStream.write(EXIT);
+            receivedModeResponse = false;
         } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    @Override
+    public String getID() {
+        return "Logic Analyzer";
     }
 
     public byte[] getDataBuffer(){
@@ -164,7 +170,7 @@ public class LogicAnalyzerManager implements Manager{
 
                         // Decode compressed data with Run Length algorithm
                         dataBuffer = LogicHelper.runLengthDecode(byteArrayBuffer);
-                        System.out.println("Received data full lenght: " + dataBuffer.length);
+                        System.out.println("Received data full length: " + dataBuffer.length);
 
                         // Check if checksum matches
                         int calculatedCRC16 = CRC16.calculateCRC(dataBuffer);
@@ -182,6 +188,7 @@ public class LogicAnalyzerManager implements Manager{
 
                         if(!retry){
                             onDataReceived.onNewDataReceived(dataBuffer, inputStream, outputStream, "LogicAnalyzer");
+                            return;
                         }
                     }
                 }

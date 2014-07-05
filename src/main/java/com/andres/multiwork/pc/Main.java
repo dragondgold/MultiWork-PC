@@ -1,6 +1,6 @@
 package com.andres.multiwork.pc;
 
-import com.andres.multiwork.pc.connection.ConnectionManager;
+import com.andres.multiwork.pc.connection.MultiConnectionManager;
 import com.andres.multiwork.pc.screens.ExportScreen;
 import com.andres.multiwork.pc.screens.LogicAnalyzerChartScreen;
 import com.andres.multiwork.pc.screens.RawDataScreen;
@@ -9,10 +9,12 @@ import com.andres.multiwork.pc.screens.SettingsScreen;
 import com.andres.multiwork.pc.utils.BuildProcedure;
 import com.andres.multiwork.pc.utils.ScreenManager;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.File;
@@ -51,7 +53,7 @@ public class Main extends Application {
         GlobalValues.resourceBundle = ResourceBundle.getBundle("language", new Locale("en"));
 
         // Create connection manager and connect by bluetooth
-        GlobalValues.connectionManager = new ConnectionManager();
+        GlobalValues.multiConnectionManager = new MultiConnectionManager();
         //GlobalValues.connectionManager.connectByBluetooth();
 
         // Screen Manager
@@ -117,6 +119,15 @@ public class Main extends Application {
         GlobalValues.screenManager.buildAndShowScreen("ChartScreen");
         GlobalValues.screenManager.build("RawDataScreen");
         GlobalValues.screenManager.build("ExportScreen");
+
+        // Close JavaFX application. Otherwise the UI is hidden but the process is still running in background
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                GlobalValues.multiConnectionManager.exitMode();
+                com.sun.javafx.application.PlatformImpl.tkExit();
+            }
+        });
     }
 
     public static void main(String[] args) {

@@ -1,6 +1,7 @@
 package com.andres.multiwork.pc.screens;
 
 import com.andres.multiwork.pc.charts.LogicAdvancedChart;
+import com.andres.multiwork.pc.connection.LogicAnalyzerManager;
 import com.andres.multiwork.pc.connection.OnNewDataReceived;
 import com.andres.multiwork.pc.utils.Decoder;
 import com.andres.multiwork.pc.GlobalValues;
@@ -67,7 +68,6 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             }
             if("MOUSE_CLICKED".equals(mouseEvent.getEventType().getName())) {
                 if(mouseEvent.getButton() == MouseButton.SECONDARY){
-                    // TODO: action based on click
                     System.out.println("Clicked series: " + series.getName());
 
                     currentSelectedSeries = Character.getNumericValue(series.getName().charAt(series.getName().length()-1));
@@ -116,8 +116,9 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         menuItemAnalyzer.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                //GlobalValues.connectionManager.getLogicAnalyzerManager().startCapture();
+                //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
 
+                // I2C Sample data
                 LogicBitSet data, clk;
                 data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 3);
                 clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 3);
@@ -140,22 +141,26 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             }
         });
 
-        onNewDataReceived = new OnNewDataReceived() {
-            @Override
-            public void onNewDataReceived(byte[] data, InputStream inputStream, OutputStream outputStream, String source) {
-                System.out.println("Data received!");
-
-                decoder.setData(data);
-                decoder.decodeAll();
-                updateChart();
-            }
-        };
-        GlobalValues.connectionManager.addDataReceivedListener(onNewDataReceived);
-
-        // Remove listener when we close the window
+        // Remove listener and exit mode when we close the window
         getStage().setOnHiding(event -> {
-            GlobalValues.connectionManager.removeDataReceivedListener(onNewDataReceived);
+            GlobalValues.multiConnectionManager.removeDataReceivedListener(onNewDataReceived);
+            GlobalValues.multiConnectionManager.exitMode();
         });
+
+        // Add listener when showing window
+        getStage().setOnShowing(event -> {
+            GlobalValues.multiConnectionManager.addDataReceivedListener(onNewDataReceived);
+            GlobalValues.multiConnectionManager.enterMode("Logic Analyzer");
+        });
+
+        // New data received!
+        onNewDataReceived = (data, inputStream, outputStream, source) -> {
+            System.out.println("Data received!");
+
+            decoder.setData(data);
+            decoder.decodeAll();
+            updateChart();
+        };
     }
 
     /**
@@ -245,5 +250,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         mainChart.setY(menuBar.getHeight());
         mainChart.setHeight(getScene().getHeight() - menuBar.getHeight());
         mainChart.setWidth(getScene().getWidth());
+
+
     }
 }

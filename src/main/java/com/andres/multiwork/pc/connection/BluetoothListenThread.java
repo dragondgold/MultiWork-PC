@@ -8,11 +8,17 @@ public class BluetoothListenThread implements Runnable {
 
 	private StreamConnection mConnection;
     private BluetoothEvent bluetoothEvent;
+    private boolean keepRunning = true;
 
-	public BluetoothListenThread(StreamConnection connection, BluetoothEvent bluetoothEvent){
-		mConnection = connection;
+	public BluetoothListenThread(StreamConnection connection, BluetoothEvent bluetoothEvent) {
+        mConnection = connection;
         this.bluetoothEvent = bluetoothEvent;
-	}
+        new Thread(this).start();
+    }
+
+    public void stopConnection(){
+        keepRunning = false;
+    }
 
 	@Override
 	public void run() {
@@ -24,7 +30,7 @@ public class BluetoothListenThread implements Runnable {
             // Prepare to receive data
             if(bluetoothEvent != null) bluetoothEvent.onBluetoothConnected(inputStream, outputStream);
 
-            while(true){
+            while(keepRunning){
                 if(inputStream.available() > 0){
                     bluetoothEvent.onBluetoothDataReceived(inputStream, outputStream);
                 }

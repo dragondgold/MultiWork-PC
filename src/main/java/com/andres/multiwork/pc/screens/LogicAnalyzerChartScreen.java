@@ -120,8 +120,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
                 // I2C Sample data
                 LogicBitSet data, clk;
-                data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 3);
-                clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 3);
+                data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 100);
+                clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 100);
 
                 byte[] buffer = Decoder.bitSetToBuffer(data, clk);
                 decoder.setData(buffer);
@@ -184,6 +184,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         });
 
         exportAllItem.setOnAction(event -> {
+            ((ExportScreen)GlobalValues.screenManager.getScreen("ExportScreen")).setChannelToExport(ExportScreen.EXPORT_ALL_CHANNELS);
             GlobalValues.screenManager.show("ExportScreen");
         });
     }

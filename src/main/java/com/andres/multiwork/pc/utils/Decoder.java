@@ -6,6 +6,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 public class Decoder {
 
@@ -146,7 +147,7 @@ public class Decoder {
      * object passed in the constructor
      * @param channelNumber channel number to be decoded from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      */
-    public void decode (int channelNumber){
+    public void decode (final int channelNumber){
         int protocol = generalSettings.getInt("protocol" + channelNumber, GlobalValues.uartProtocol);
         int sampleRate = generalSettings.getInt("sampleRate", 4000000);
 

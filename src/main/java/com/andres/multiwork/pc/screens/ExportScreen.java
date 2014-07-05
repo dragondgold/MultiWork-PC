@@ -16,6 +16,8 @@ import java.io.IOException;
 
 public class ExportScreen extends MultiWorkScreen {
 
+    public static final int EXPORT_ALL_CHANNELS = -1;
+
     private CheckBox exportDataCheck;
     private CheckBox exportSamplesCheck;
     private DatePicker datePicker;
@@ -36,17 +38,34 @@ public class ExportScreen extends MultiWorkScreen {
 
             // Export button
             ((Button)fxmlLoader.getNamespace().get("exportButton")).setOnAction(event -> {
-                if(!fileName.getText().isEmpty()) {
-                    Exporter exporter = new Exporter(Decoder.getDecoder().getRawData(channelToExport), Decoder.getDecoder().getDecodedData(channelToExport));
-                    exporter.setTitle(title.getText());
-                    exporter.setDate(datePicker.getEditor().getText());
-                    exporter.setDescription(description.getText());
-                    exporter.setFileName(fileName.getText());
-                    exporter.setExportData(exportDataCheck.isSelected());
-                    exporter.setExportSamples(exportSamplesCheck.isSelected());
+                if(channelToExport != EXPORT_ALL_CHANNELS) {
+                    if (!fileName.getText().isEmpty()) {
+                        Exporter exporter = new Exporter(Decoder.getDecoder().getRawData(channelToExport), Decoder.getDecoder().getDecodedData(channelToExport));
+                        exporter.setTitle(title.getText());
+                        exporter.setDate(datePicker.getEditor().getText());
+                        exporter.setDescription(description.getText());
+                        exporter.setFileName(fileName.getText());
+                        exporter.setExportData(exportDataCheck.isSelected());
+                        exporter.setExportSamples(exportSamplesCheck.isSelected());
 
-                    exporter.export();
-                    getStage().hide();
+                        exporter.export();
+                        getStage().hide();
+                    }
+                }else{
+                    for(int n = 0; n < GlobalValues.channelsNumber; ++n){
+                        if (!fileName.getText().isEmpty()) {
+                            Exporter exporter = new Exporter(Decoder.getDecoder().getRawData(n), Decoder.getDecoder().getDecodedData(n));
+                            exporter.setTitle(title.getText());
+                            exporter.setDate(datePicker.getEditor().getText());
+                            exporter.setDescription(description.getText());
+                            exporter.setFileName(fileName.getText() + (n+1));
+                            exporter.setExportData(exportDataCheck.isSelected());
+                            exporter.setExportSamples(exportSamplesCheck.isSelected());
+
+                            exporter.export();
+                            getStage().hide();
+                        }
+                    }
                 }
             });
 
@@ -77,7 +96,11 @@ public class ExportScreen extends MultiWorkScreen {
      */
     public void setChannelToExport(int channelNumber){
         channelToExport = channelNumber;
-        getStage().setTitle(GlobalValues.resourceBundle.getString("channel") + " " + (channelToExport+1));
+        if(channelNumber == EXPORT_ALL_CHANNELS){
+            getStage().setTitle(GlobalValues.resourceBundle.getString("allChannels"));
+        }else{
+            getStage().setTitle(GlobalValues.resourceBundle.getString("channel") + " " + (channelToExport+1));
+        }
     }
 
     @Override

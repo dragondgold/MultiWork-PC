@@ -63,7 +63,7 @@ public class Decoder {
             channelsData[n] = new LogicBitSet();
 
             // Just add empty items to the list so we can replace them later
-            decodedData.add(new ArrayList<TimePosition>());
+            decodedData.add(new ArrayList<>());
         }
 
     }
@@ -137,9 +137,12 @@ public class Decoder {
      * object passed in the constructor
      */
     public void decodeAll (){
+        long t1 = System.nanoTime();
         for(int n = 0; n < GlobalValues.channelsNumber; ++n){
             decode(n);
         }
+        long t2 = System.nanoTime();
+        System.out.println(GlobalValues.channelsNumber + " channels decoded in " + (t2-t1)/1000000 + " mS");
     }
 
     /**
@@ -148,6 +151,11 @@ public class Decoder {
      * @param channelNumber channel number to be decoded from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      */
     public void decode (final int channelNumber){
+        // Clear previous decoded data
+        i2CProtocol.getDecodedData().clear();
+        uartProtocol.getDecodedData().clear();
+        spiProtocol.getDecodedData().clear();
+
         int protocol = generalSettings.getInt("protocol" + channelNumber, GlobalValues.uartProtocol);
         int sampleRate = generalSettings.getInt("sampleRate", 4000000);
 
@@ -165,9 +173,11 @@ public class Decoder {
                 i2CProtocol.setChannelBitsData(channelsData[channelNumber]);
                 i2CProtocol.setClockSource(clockProtocol);
 
-                // Decode and store the data
+                // Decode and store the data. Create a copy of the decoded data List because if decode() method is called
+                //  again for another channel we will clear all the decoded data in the channels to decoded the new one
+                //  and the data in the list will be deleted as well (reference)
                 i2CProtocol.decode(0);
-                decodedData.set(channelNumber, i2CProtocol.getDecodedData());
+                decodedData.set(channelNumber, new ArrayList<>(i2CProtocol.getDecodedData()));
                 break;
 
             case GlobalValues.uartProtocol:
@@ -188,7 +198,7 @@ public class Decoder {
 
                 // Decode and store the data
                 uartProtocol.decode(0);
-                decodedData.set(channelNumber, uartProtocol.getDecodedData());
+                decodedData.set(channelNumber, new ArrayList<>(uartProtocol.getDecodedData()));
                 break;
 
             case GlobalValues.spiProtocol:
@@ -209,7 +219,7 @@ public class Decoder {
 
                 // Decode and store the data
                 spiProtocol.decode(0);
-                decodedData.set(channelNumber, spiProtocol.getDecodedData());
+                decodedData.set(channelNumber, new ArrayList<>(spiProtocol.getDecodedData()));
                 break;
 
             default:
@@ -244,7 +254,7 @@ public class Decoder {
 
         int maxLenght = data[0].length();
         for(LogicBitSet logicBitSet : data){
-            maxLenght = Math.max(data.length, maxLenght);
+            maxLenght = Math.max(logicBitSet.length(), maxLenght);
         }
 
         byte[] buffer = new byte[maxLenght];

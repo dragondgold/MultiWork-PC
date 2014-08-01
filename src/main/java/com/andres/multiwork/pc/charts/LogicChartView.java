@@ -128,6 +128,9 @@ public class LogicChartView extends LineChart {
             }
         });
 
+        // Axis time
+        getXAxis().setLabel(timeToLabel(currentScale));
+
         getXAxis().setAutoRanging(false);
         ((NumberAxis) getXAxis()).setLowerBound(0);
         ((NumberAxis) getXAxis()).setUpperBound(((NumberAxis) getXAxis()).getLowerBound() + toCoordinate(horizontalDivisions * currentScale));
@@ -274,6 +277,7 @@ public class LogicChartView extends LineChart {
     protected void layoutPlotChildren() {
         super.layoutPlotChildren();
 
+        // One time settings
         if(!paneAdded) {
             // Add mouse listener to series the first time
             for(int n = 0; n < GlobalValues.channelsNumber; ++n){
@@ -304,9 +308,6 @@ public class LogicChartView extends LineChart {
 
         // Clip the pane so we can't render outside chart plotting area
         annotationPane.setClip(clippingArea);
-
-        // Axis time
-        getXAxis().setLabel(timeToLabel(currentScale));
 
         // Every time the chart is redrawn we have to update annotations positions
         renderAnnotations();
@@ -363,11 +364,6 @@ public class LogicChartView extends LineChart {
      * Render all the added annotations with the current scale
      */
     public void renderAnnotations(){
-        /**
-         * We have to ensure the new chart scale is rendered in order for getDisplayPosition() to return
-         * correct values. Sometimes Platform.runLater() makes the code run in the next pulse but in this
-         * case didn't work so I add a larger delay of 10mS
-         */
         Axis<Double> xAxis = getXAxis();
         Axis<Double> yAxis = getYAxis();
 

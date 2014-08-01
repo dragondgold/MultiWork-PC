@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 
@@ -20,8 +21,11 @@ public class GeneralPane extends SettingsPane{
     private ChangeListener<Integer> sampleRateChangeListener;
     private ChangeListener<Boolean> simpleTriggerGeneralListener;
 
-    public GeneralPane(int id) {
+    private FXMLLoader fxmlLoader;
+
+    public GeneralPane(int id, FXMLLoader fxmlLoader) {
         super(id);
+        this.fxmlLoader = fxmlLoader;
 
         try {
             setPane(FXMLLoader.load(SettingsScreen.class.getResource("/LogicAnalyzerSettings/PaneGeneral.fxml")));
@@ -61,11 +65,15 @@ public class GeneralPane extends SettingsPane{
 
         sampleRateChoice.getSelectionModel().selectedItemProperty().addListener(sampleRateChangeListener);
         simpleTriggerGeneral.selectedProperty().addListener(simpleTriggerGeneralListener);
+
+        ((Pane)fxmlLoader.getNamespace().get("generalPane")).setDisable(true);
     }
 
     @Override
     public void disable() {
         sampleRateChoice.getSelectionModel().selectedItemProperty().removeListener(sampleRateChangeListener);
         simpleTriggerGeneral.selectedProperty().removeListener(simpleTriggerGeneralListener);
+
+        ((Pane)fxmlLoader.getNamespace().get("generalPane")).setDisable(false);
     }
 }

@@ -29,11 +29,8 @@ public class Main extends Application {
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
 
-        primaryStage.setX(bounds.getMinX());
-        primaryStage.setY(bounds.getMinY());
-        primaryStage.setWidth(bounds.getWidth());
-        primaryStage.setHeight(bounds.getHeight());
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);
+        primaryStage.setMaximized(true);
 
         GlobalValues.screenWidth = (int) bounds.getWidth();
         GlobalValues.screenHeight = (int) bounds.getHeight();
@@ -114,19 +111,16 @@ public class Main extends Application {
             }
         });
 
-
         GlobalValues.screenManager.build("SettingsScreen");
         GlobalValues.screenManager.buildAndShowScreen("ChartScreen");
         GlobalValues.screenManager.build("RawDataScreen");
         GlobalValues.screenManager.build("ExportScreen");
 
         // Close JavaFX application. Otherwise the UI is hidden but the process is still running in background
-        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                GlobalValues.multiConnectionManager.exitMode();
-                com.sun.javafx.application.PlatformImpl.tkExit();
-            }
+        primaryStage.setOnCloseRequest(event -> {
+            System.out.println("Exiting app!");
+            GlobalValues.multiConnectionManager.exitMode();
+            com.sun.javafx.application.PlatformImpl.tkExit();
         });
     }
 

@@ -1,36 +1,33 @@
 package com.andres.multiwork.pc.screens;
 
-import com.andres.multiwork.pc.charts.LogicAdvancedChart;
-import com.andres.multiwork.pc.connection.LogicAnalyzerManager;
 import com.andres.multiwork.pc.connection.OnNewDataReceived;
+import com.andres.multiwork.pc.highstocks.AnnotationEvent;
+import com.andres.multiwork.pc.highstocks.HighStockChart;
+import com.andres.multiwork.pc.highstocks.SeriesLegendShiftClick;
 import com.andres.multiwork.pc.utils.Decoder;
 import com.andres.multiwork.pc.GlobalValues;
 import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.protocolanalyzer.api.*;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.effect.Glow;
+import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
-    private final LogicAdvancedChart mainChart;
+    private final HighStockChart mainChart;
     private final MenuBar menuBar;
 
-    private final KeyCombination zoomInCombination = new KeyCodeCombination(KeyCode.UP);
-    private final KeyCombination zoomOutCombination = new KeyCodeCombination(KeyCode.DOWN);
     private final KeyCombination fullScreenCombination = new KeyCodeCombination(KeyCode.F11);
-    private final KeyCombination analyzeCombination = new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN);
+    private final KeyCombination analyzeCombination = new KeyCodeCombination(KeyCode.A, KeyCombination.SHIFT_DOWN);
 
     private final Decoder decoder = Decoder.getDecoder().setSettings(GlobalValues.xmlSettings);
 
@@ -41,6 +38,14 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
     private final ContextMenu seriesContextMenu = new ContextMenu();
     private int currentSelectedSeries = -1;
 
+    double y2 = 25, y1 = 0;
+    final double yIncrement = 2;
+
+    private final double initTime = 0;
+    private final int annotationsPerCycle = 5;
+
+    private Tooltip tooltip = new Tooltip();
+
     public LogicAnalyzerChartScreen(final Stage stage, final int width, final int height){
         super(stage);
 
@@ -48,33 +53,64 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         menuBar = new MenuBar();
         pane.getChildren().addAll(menuBar);
 
-        mainChart = new LogicAdvancedChart(pane);
-        mainChart.getMainChart().setTitle(GlobalValues.resourceBundle.getString("chartTitle"));
-        mainChart.getMainChart().getXAxis().setLabel(GlobalValues.resourceBundle.getString("chartXAxis"));
-        mainChart.getMainChart().getYAxis().setLabel(GlobalValues.resourceBundle.getString("chartYAxis"));
-        mainChart.getSmallChart().getYAxis().setLabel(GlobalValues.resourceBundle.getString("chartYAxis"));
+        mainChart = new HighStockChart(pane);
+        mainChart.setOnChartLoaded(() -> {
+            mainChart.setTitle(GlobalValues.resourceBundle.getString("chartTitle"), "");
+            mainChart.setXAxisLabel(GlobalValues.resourceBundle.getString("chartXAxis") + " [μS]");
+            mainChart.setYAxisLabel(GlobalValues.resourceBundle.getString("chartYAxis"));
+        });
 
         setScene(new Scene(pane, width, height));
         buildMenu();
         buildSeriesContextMenu();
 
         // Series event listener
-        mainChart.setSeriesEventListener((series, mouseEvent) -> {
-            if("MOUSE_ENTERED".equals(mouseEvent.getEventType().getName())) {
-                series.getNode().setEffect(new Glow(2.5));
-            }
-            if("MOUSE_EXITED".equals(mouseEvent.getEventType().getName())) {
-                series.getNode().setEffect(null);
-            }
-            if("MOUSE_CLICKED".equals(mouseEvent.getEventType().getName())) {
-                if(mouseEvent.getButton() == MouseButton.SECONDARY){
-                    System.out.println("Clicked series: " + series.getName());
+        mainChart.setSeriesLegendShiftClick(new SeriesLegendShiftClick() {
+            @Override
+            public void onSeriesLegendShiftClick(int seriesNumber, double x, double y) {
+                System.out.println("Clicked series " + seriesNumber);
 
-                    currentSelectedSeries = Character.getNumericValue(series.getName().charAt(series.getName().length()-1));
-                    seriesContextMenu.show(getStage(), mouseEvent.getScreenX(), mouseEvent.getScreenY());
-                }
+                currentSelectedSeries = seriesNumber;
+                seriesContextMenu.show(getStage(), x, y);
             }
         });
+        /* //TODO: fix this
+        mainChart.setAnnotationEvent(new AnnotationEvent() {
+            @Override
+            public void onAnnotationClicked(String title, double mouseX, double mouseY) {
+                // Toggle hide and show tooltip when clicking on any annotation
+                if(tooltip.isShowing()){
+                    tooltip.hide();
+                }else{
+                    tooltip.show(getStage(), mouseX, mouseY);
+                    tooltip.setText("Data: " + title);
+                }
+                System.out.println("Annotation clicked - " + title);
+            }
+
+            @Override
+            public void onMouseEnter(String title, double mouseX, double mouseY) {
+                System.out.println("Annotation mouse enter: " + title);
+                if(!tooltip.isShowing()){
+                    tooltip.show(getStage(), mouseX, mouseY);
+                    tooltip.setText("Data: " + title);
+                    return;
+                }
+                tooltip.setText("Data: " + title);
+                tooltip.setX(mouseX);
+                tooltip.setY(mouseY);
+            }
+
+            @Override
+            public void onMouseOut(String title, double mouseX, double mouseY) {
+                System.out.println("Annotation mouse out: " + title);
+                tooltip.hide();
+            }
+        });*/
+
+        // Load font and CSS file to apply it to the current scene
+        Font.loadFont(LogicAnalyzerChartScreen.class.getResource("/data-latin.ttf").toExternalForm(), 12);
+        getScene().getStylesheets().add(LogicAnalyzerChartScreen.class.getResource("/myStyle.css").toExternalForm());
     }
 
     /**
@@ -106,40 +142,24 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         menuBar.getMenus().addAll(menuFile, menuAnalyzer, menuView);
 
         /** Events */
-        menuItemSettings.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                GlobalValues.screenManager.show("SettingsScreen");
-            }
-        });
+        menuItemSettings.setOnAction(actionEvent -> GlobalValues.screenManager.show("SettingsScreen"));
 
-        menuItemAnalyzer.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
+        menuItemAnalyzer.setOnAction(actionEvent -> {
+            //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
 
-                // I2C Sample data
-                LogicBitSet data, clk;
-                data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 100);
-                clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 100);
+            // I2C Sample data
+            LogicBitSet data, clk;
+            data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 40);
+            clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 40);
 
-                byte[] buffer = Decoder.bitSetToBuffer(data, clk);
-                decoder.setData(buffer);
-                decoder.decodeAll();
+            byte[] buffer = Decoder.bitSetToBuffer(data, clk);
+            decoder.setData(buffer);
+            decoder.decodeAll();
 
-                updateChart();
-            }
+            updateChart();
         });
 
         menuItemFullscreen.setOnAction(actionEvent -> getStage().setFullScreen(true));
-
-        getScene().setOnKeyReleased(keyEvent -> {
-            if(zoomInCombination.match(keyEvent)){
-                mainChart.zoomIn();
-            }else if(zoomOutCombination.match(keyEvent)){
-                mainChart.zoomOut();
-            }
-        });
 
         // Remove listener and exit mode when we close the window
         getStage().setOnHiding(event -> {
@@ -174,12 +194,12 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         seriesContextMenu.getItems().addAll(rawDataItem, exportItem, exportAllItem);
 
         rawDataItem.setOnAction(event -> {
-            ((RawDataScreen)GlobalValues.screenManager.getScreen("RawDataScreen")).setChannelToShow(currentSelectedSeries-1);
+            ((RawDataScreen)GlobalValues.screenManager.getScreen("RawDataScreen")).setChannelToShow(currentSelectedSeries);
             GlobalValues.screenManager.show("RawDataScreen");
         });
 
         exportItem.setOnAction(event -> {
-            ((ExportScreen)GlobalValues.screenManager.getScreen("ExportScreen")).setChannelToExport(currentSelectedSeries-1);
+            ((ExportScreen)GlobalValues.screenManager.getScreen("ExportScreen")).setChannelToExport(currentSelectedSeries);
             GlobalValues.screenManager.show("ExportScreen");
         });
 
@@ -193,53 +213,93 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
      * Updates chart with the new decoded data from {@link com.andres.multiwork.pc.utils.Decoder}
      */
     private void updateChart(){
-        final int samplesNumber = decoder.getMaxSamplesNumber();
-        final double initTime = 0;
-        double time = initTime;
+        mainChart.showLoading("Processing data...");
 
-        // Draw waveforms in the chart. We only put seriesContextMenu point every time signal changes state. On this way we avoid
-        //  adding seriesContextMenu large amount of data in the chart slowing down rendering without loosing visual quality of
+        // Draw waveforms in the chart. We only put a point every time signal changes state. On this way we avoid
+        //  adding to series large amount of data in the chart (slowing down rendering) without loosing visual quality of
         //  the signal.
         for(int channel = 0; channel < GlobalValues.channelsNumber; ++channel){
             final LogicBitSet bitsData = decoder.getRawData(channel);
+            final int samplesNumber = decoder.getMaxSamplesNumber();
+            double time = initTime;
+            System.out.println("Channel " + channel + " contains " + bitsData.size());
 
             boolean bitState = false;
             for(int n = 0; n < samplesNumber; ++n){
                 // Initial point
                 if(n == 0){
                     bitState = bitsData.get(0);
+                    mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
 
-                    mainChart.addLogicData(channel, time, bitsData.get(n));
-
-                // Found an state change, add this point
+                    // Found an state change, add this point
                 }else if(bitsData.get(n) != bitState){
                     bitState = bitsData.get(n);
 
                     double tTime = time - 1.0d/decoder.getSampleFrequency();
 
                     // Previous state
-                    mainChart.addLogicData(channel, tTime, bitsData.get(n-1));
+                    mainChart.addLogicData(channel, tTime, bitsData.get(n-1), false, false);
 
                     // Current state
-                    mainChart.addLogicData(channel, time, bitsData.get(n));
+                    mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
 
-                // Add seriesContextMenu the final point, doesn't care if the state didn't change
+                    // Add seriesContextMenu the final point, doesn't care if the state didn't change
                 }else if(n == (samplesNumber-1)){
-                    mainChart.addLogicData(channel, time, bitsData.get(n));
+                    mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
                 }
-                // Increment time
-                time += 1.0d/decoder.getSampleFrequency();
-            }
 
-            // Decoded data annotations
-            for (int n = 0; n < decoder.getDecodedData(channel).size(); ++n) {
-                final TimePosition decodedData = decoder.getDecodedData(channel).get(n);
-                mainChart.addLogicAnnotation(decodedData.getString(), decodedData.startTime(), decodedData.endTime(), channel);
+                // Increment time in uS
+                time += (1.0d/decoder.getSampleFrequency())*1000000d;
             }
-
-            if(channel < GlobalValues.channelsNumber-1) time = initTime;
         }
-        mainChart.updateChart();
+
+        // Keep track of the current annotation where are in every channel
+        final int[] currentAnnotation = new int[GlobalValues.channelsNumber];
+        final boolean[] channelReady = new boolean[GlobalValues.channelsNumber];
+
+        new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                for(int channel = 0; channel < GlobalValues.channelsNumber; ++channel) {
+                    final List<TimePosition> dataList = decoder.getDecodedData(channel);
+
+                    int n;
+                    // Decoded data annotations
+                    for (n = currentAnnotation[channel]; currentAnnotation[channel] < dataList.size() && (n-currentAnnotation[channel]) < annotationsPerCycle;
+                            ++currentAnnotation[channel]) {
+                        final TimePosition decodedData = decoder.getDecodedData(channel).get(currentAnnotation[channel]);
+
+                        mainChart.addLogicAnnotation(decodedData.getString(), decodedData.startTime() * 1E6, decodedData.endTime() * 1E6, channel, false);
+                    }
+                    if(!(currentAnnotation[channel] < dataList.size())) channelReady[channel] = true;
+                    else channelReady[channel] = false;
+
+                    // All annotations added, redraw chart!
+                    if(allChecked(channelReady)) {
+                        stop();
+                        mainChart.redraw();
+                        // Give some time to chart to redraw and then set the extremes
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(() -> {
+                                    mainChart.setXAxisExtremes(0, 300, false);
+                                    mainChart.setYAxisExtremes(y1, y2, true);
+                                    mainChart.hideLoading();
+                                });
+                            }
+                        }, 50);
+                    }
+                }
+            }
+        }.start();
+    }
+
+    private boolean allChecked(boolean[] data){
+        for(int n = 0; n < data.length; ++n){
+            if(!data[n]) return false;
+        }
+        return true;
     }
 
     @Override
@@ -248,10 +308,27 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         getStage().show();
 
         // Chart
-        mainChart.setY(menuBar.getHeight());
-        mainChart.setHeight(getScene().getHeight() - menuBar.getHeight());
-        mainChart.setWidth(getScene().getWidth());
+        mainChart.getWebView().setLayoutY(menuBar.getHeight());
+        mainChart.getWebView().setLayoutX(0);
+        mainChart.getWebView().setPrefHeight(getScene().getHeight() - menuBar.getHeight());
+        mainChart.getWebView().setPrefWidth(getScene().getWidth());
 
-
+        // Move y axis limits when pressing up and down arrows
+        getScene().setOnKeyPressed(event -> {
+            if(event.getCode() == KeyCode.UP){
+                if(y2 < 50) {
+                    y2 += yIncrement;
+                    y1 += yIncrement;
+                }
+            }
+            if(event.getCode() == KeyCode.DOWN){
+                if(y1 >= yIncrement) {
+                    y2 -= yIncrement;
+                    y1 -= yIncrement;
+                }
+            }
+            mainChart.setYAxisExtremes(y1, y2, true);
+            mainChart.getWebEngine().executeScript("getChart().redrawAnnotations()");
+        });
     }
 }

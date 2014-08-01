@@ -21,12 +21,7 @@ import java.util.List;
 
 public class SettingsScreen extends MultiWorkScreen {
 
-    private static final int I2C_PANE = 0;
-    private static final int UART_PANE = 1;
-    private static final int SPI_PANE = 2;
-    private static final int ONE_WIRE_PANE = 3;
-    private static final int GENERAL_SETTINGS = -1;
-
+    private static final int GENERAL_SETTINGS = 1;
     private int currentChannel = 0;
 
     // Protocol
@@ -57,10 +52,10 @@ public class SettingsScreen extends MultiWorkScreen {
             Pane mainScreen = fxmlLoader.load();
 
             // Pane corresponding to each protocol and general settings
-            settingsPaneList.add(new I2CPane(I2C_PANE));
-            settingsPaneList.add(new UARTPane(UART_PANE));
-            settingsPaneList.add(new SPIPane(SPI_PANE));
-            settingsPaneList.add(new GeneralPane(GENERAL_SETTINGS));
+            settingsPaneList.add(new I2CPane(GlobalValues.i2cProtocol));
+            settingsPaneList.add(new UARTPane(GlobalValues.uartProtocol));
+            settingsPaneList.add(new SPIPane(GlobalValues.spiProtocol));
+            settingsPaneList.add(new GeneralPane(GENERAL_SETTINGS, fxmlLoader));
 
             setScene(new Scene(mainScreen, width, height));
 
@@ -79,6 +74,14 @@ public class SettingsScreen extends MultiWorkScreen {
      * Show the side pane corresponding to the current selected item
      */
     private void showPane(int pane){
+        // Disable de side pane if the channel is disabled of protocol is clock
+        if(pane == GlobalValues.channelDisabled || pane == GlobalValues.clockProtocol) {
+            ((SplitPane) fxmlLoader.getNamespace().get("splitPane")).getItems().get(1).setDisable(true);
+        }
+        else {
+            ((SplitPane) fxmlLoader.getNamespace().get("splitPane")).getItems().get(1).setDisable(false);
+        }
+
         // Show and enable selected pane and disable all the others
         for(SettingsPane p : settingsPaneList){
             if(p.getID() == pane){
@@ -95,17 +98,7 @@ public class SettingsScreen extends MultiWorkScreen {
      * @param protocol protocol to show
      */
     private void protocolToPane(int protocol){
-        switch (protocol){
-            case GlobalValues.i2cProtocol:
-                showPane(I2C_PANE);
-                break;
-            case GlobalValues.uartProtocol:
-                showPane(UART_PANE);
-                break;
-            case GlobalValues.spiProtocol:
-                showPane(SPI_PANE);
-                break;
-        }
+        showPane(protocol);
     }
 
     @Override

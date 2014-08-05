@@ -109,7 +109,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         });*/
 
         // Load font and CSS file to apply it to the current scene
-        Font.loadFont(LogicAnalyzerChartScreen.class.getResource("/data-latin.ttf").toExternalForm(), 12);
+        Font.loadFont(LogicAnalyzerChartScreen.class.getResource("/UnicaOne-Regular.ttf").toExternalForm(), 12);
         getScene().getStylesheets().add(LogicAnalyzerChartScreen.class.getResource("/myStyle.css").toExternalForm());
     }
 

@@ -173,6 +173,7 @@ function defaultOptions(shapeType) {
         return options;
 }
 
+
 function defatultMainOptions(){
 	var buttons = [],
 		shapes = ['circle', 'line', 'square'],
@@ -223,7 +224,7 @@ function defatultMainOptions(){
 			style: {
 				fill: 'black',
 				stroke: 'blue',
-				strokeWidth: 2
+				strokeWidth: 2,
 			},
 			size: 12,
 			states: {
@@ -297,7 +298,7 @@ function createClipPath(chart, y){
 
 function attachEvents(chart) {
 	function drag(e) {
-		var offset = $(container).offset(),
+		var offset = $(chart.container).offset(),
 			clickX = e.pageX - offset.left,
 			clickY = e.pageY - offset.top;
 		
@@ -337,19 +338,17 @@ function attachEvents(chart) {
 			}
 			chart.drawAnnotation = null;
 	}
-	Highcharts.addEvent(container, 'mousedown', drag);
+	Highcharts.addEvent(chart.container, 'mousedown', drag);
 	Highcharts.addEvent(document, 'mouseup', drop);	
 }
 
 function renderButtons(chart) {
-    // I don't want this buttons
-    /*
 	var buttons = chart.annotations.options.buttons;
 	
 	chart.annotations.buttons = chart.annotations.buttons || [];
 	each(buttons, function(button, i) {
 		chart.annotations.buttons.push(renderButton(chart, button, i));
-	});*/
+	});
 }
 
 function renderButton(chart, button, i) {
@@ -452,7 +451,6 @@ Annotation.prototype = {
 					addEvent(document, 'mouseup', function(e){
 							annotation.events.releaseAnnotation(e, chart);
 					});
-                    /*
 					group.on('dblclick', function(e){
 						if(annotation.options.linkedAnnotations) {
 							var items = chart.annotations.allItems,
@@ -469,73 +467,8 @@ Annotation.prototype = {
 						} else {
 							annotation.events.destroyAnnotation(e, annotation, chart);
 						}
-					});*/
-                    /** Click on annotation
-                     *  @author Andres Torti
-                     */
-                    //annotation.title.element.style.pointerEvents = 'none';
-                    annotation.shape.parentGroup.element.addEventListener("click",function(e){
-                        var title;
-                        if(annotation.options.title.text == null)
-                            title = annotation.options.title;
-                        else
-                            title = annotation.options.title.text;
-
-                        alert("(Annotation Click)," + title);
-                    }, true);
-                    annotation.shape.parentGroup.element.addEventListener("mouseenter",function(e){
-                        var title;
-                        if(annotation.options.title.text == null)
-                            title = annotation.options.title;
-                        else
-                            title = annotation.options.title.text;
-
-                        alert("(Annotation Enter)," + title);
-                    }, true);
-                    annotation.shape.parentGroup.element.addEventListener("mouseleave",function(e){
-                        var title;
-                        if(annotation.options.title.text == null)
-                            title = annotation.options.title;
-                        else
-                            title = annotation.options.title.text;
-
-                        alert("(Annotation Out)," + title);
-                    }, true);
-                }
-                else if(!hasEvents){
-                    /** Click on annotation
-                     *  @author Andres Torti
-                     */
-                    //annotation.title.element.style.pointerEvents = 'none';
-                    annotation.shape.parentGroup.element.addEventListener("click",function(e){
-                        var title;
-                        if(annotation.options.title.text == null)
-                            title = annotation.options.title;
-                        else
-                            title = annotation.options.title.text;
-
-                        alert("(Annotation Click)," + title);
-                    }, true);
-                    annotation.shape.parentGroup.element.addEventListener("mouseenter",function(e){
-                        var title;
-                        if(annotation.options.title.text == null)
-                            title = annotation.options.title;
-                        else
-                            title = annotation.options.title.text;
-
-                        alert("(Annotation Enter)," + title);
-                    }, true);
-                    annotation.shape.parentGroup.element.addEventListener("mouseleave",function(e){
-                        var title;
-                        if(annotation.options.title.text == null)
-                            title = annotation.options.title;
-                        else
-                            title = annotation.options.title.text;
-
-                        alert("(Annotation Out)," + title);
-                    }, true);
-                    // I don't want to remove annotations on double-click
-                    /*
+					});
+                } else if(!hasEvents){
 					group.on('dblclick', function(e){
 						if(annotation.options.linkedAnnotations) {
 							var items = chart.annotations.allItems,
@@ -552,7 +485,7 @@ Annotation.prototype = {
 						} else {
 							annotation.events.destroyAnnotation(e, annotation, chart);
 						}
-					});*/
+					});
                 }
 				this.hasEvents = true;
                 
@@ -630,28 +563,27 @@ Annotation.prototype = {
 							title.attr(attrs);
 					}
 					title.css(options.title.style);
-                    title.attr('style', 'pointer-events: none;')
 					
 					resetBBox = true;
                 }
 
                 if (shape) {
                         shapeParams = extend({}, options.shape.params);
-                        if (options.units === 'values') {
-                                for (param in shapeParams) {
-                                        if (inArray(param, ['width', 'x']) > -1) {
-                                                shapeParams[param] = xAxis.translate(shapeParams[param]);
-                                        } else if (inArray(param, ['height', 'y']) > -1) {
-                                                shapeParams[param] = yAxis.translate(shapeParams[param]);
-                                        }
-                                }
-
+                        if (options.shape.units === 'values') {
                                 if (shapeParams.width) {
-                                        shapeParams.width -= xAxis.toPixels(0) - xAxis.left;
+                                        shapeParams.width = xAxis.toPixels(shapeParams.width) - xAxis.toPixels(0);
                                 }
 
-                                if (shapeParams.x) {
-                                        shapeParams.x += xAxis.minPixelPadding;
+                                if (defined(shapeParams.x)) {
+                                        shapeParams.x = xAxis.toPixels(shapeParams.x);
+                                }
+                                
+                                if (shapeParams.height) {
+                                        shapeParams.height = - yAxis.toPixels(shapeParams.height) + yAxis.toPixels(0);
+                                }
+
+                                if (defined(shapeParams.y)) {
+                                        shapeParams.y = yAxis.toPixels(shapeParams.y);
                                 }
 
                                 if (options.shape.type === 'path') {
@@ -881,22 +813,22 @@ extend(Chart.prototype, {
 				 * Unified method for adding annotations to the chart
 				 */
 				addAnnotation: function (options, redraw) {
-                    var chart = this,
-                        annotations = chart.annotations.allItems,
-                        item,
-                        len;
+								var chart = this,
+												annotations = chart.annotations.allItems,
+												item,
+												len;
 
-                    if (!isArray(options)) {
-                        options = [options];
-                    }
+								if (!isArray(options)) {
+												options = [options];
+								}
 
-                    len = options.length;
+								len = options.length;
 
-                    while (len--) {
-                        item = new Annotation(chart, options[len]);
-                        annotations.push(item);
-                        item.render(redraw);
-                    }
+								while (len--) {
+												item = new Annotation(chart, options[len]);
+												annotations.push(item);
+												item.render(redraw);
+								}
 				},
 
 				/**
@@ -930,6 +862,13 @@ extend(Chart.prototype, {
 										
 								each(chart.annotations.allItems, function (annotation) {
 										annotation.redraw();
+								});
+								each(chart.annotations.buttons, function(button, i) {
+										var xOffset = chart.rangeSelector ? chart.rangeSelector.inputGroup.offset : 0;
+												x = chart.plotWidth + chart.plotLeft - ((i+1) * 30) - xOffset,
+										button[0].attr({
+												x: x
+										});
 								});
 				}
 });
@@ -975,8 +914,7 @@ Chart.prototype.callbacks.push(function (chart) {
         if (isArray(options) && options.length > 0) {
 			chart.addAnnotation(chart.options.annotations);
         }
-        
-        chart.annotations.options = merge(chart.annotationsOptions ? chart.annotationsOptions : {},defatultMainOptions());
+        chart.annotations.options = merge(defatultMainOptions(), chart.options.annotationsOptions ? chart.options.annotationsOptions : {});
         
         if(chart.annotations.options.enabledButtons) {
         	renderButtons(chart);

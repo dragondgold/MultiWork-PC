@@ -149,33 +149,60 @@ $(function() {
         },
 
         annotationsOptions: {
-            enabledButtons: false
+            enabledButtons: true
         },
+
+        /*
+        annotations: [
+            {
+                title: 'test',
+                anchorX: 'left',
+                anchorY: 'top',
+                xValue: 1,
+                yValue: 1,
+                shape: {
+                    type: 'rect',
+                    //units: 'values',
+                    params: {
+                        fill: 'red',
+                        x: 0,
+                        y: 0,
+                        width: 200,
+                        height: 100
+                    }
+                }
+            }
+        ],*/
 
         // Data and flags series
 		series: [{
-            //data: [[0,0], [1,1], [1.5,0.5], [2, 3]],
+            //data: [[0,0], [1,1], [1.5,0.5], [2, 3], [4, 1], [8, 4]],
             data: [[0,0]],
 			name: 'Channel 1',
             type: 'line',
             id: 'C1'
 		}, {
+            data: [[0,0]],
 			name: 'Channel 2',
             type: 'line',
             id: 'C2'
 		}, {
+            data: [[0,0]],
 			name: 'Channel 3',
             type: 'line',
             id: 'C3'
 		}, {
+            data: [[0,0]],
 			name: 'Channel 4',
             type: 'line',
             id: 'C4'
 		}, {
+            data: [[0,0]],
 			name: 'Channel 5',
             type: 'line',
             id: 'C5'
 		}, {
+            data: [[0,0]],
 			name: 'Channel 6',
             type: 'line',
             id: 'C6'
@@ -184,6 +211,7 @@ $(function() {
             type: 'line',
             id: 'C7'
 		}, {
+            data: [[0,0]],
 			name: 'Channel 8',
             type: 'line',
             id: 'C8'
@@ -206,7 +234,7 @@ function getYExtremes(){
     return [min, max];
 }
 
-function updateAnnotation(width, height, text, fontSize, index, x, titleColor){
+function updateAnnotation(width, height, text, fontSize, index, titleColor, x){
     getChart().annotations.allItems[index].update(
             {
                 title: {
@@ -219,11 +247,27 @@ function updateAnnotation(width, height, text, fontSize, index, x, titleColor){
                 },
                 shape: {
                     params:{
-                        width: Math.abs(getChart().xAxis[0].toPixels(width) - getChart().xAxis[0].toPixels(0)),
-                        height: Math.abs(getChart().yAxis[0].toPixels(height) - getChart().yAxis[0].toPixels(0))
+                        //width: Math.abs(getChart().xAxis[0].toPixels(width) - getChart().xAxis[0].toPixels(0)),
+                        //height: Math.abs(getChart().yAxis[0].toPixels(height) - getChart().yAxis[0].toPixels(0))
+                        width: width,
+                        height: height
                     }
                 }
             });
+}
+
+function clearAllSeries() {
+    for (var n = 0; n < getChart().series.length; ++n) {
+        getChart().series[n].setData([[0,0]]);
+    }
+
+}
+
+function removeAllAnnotations() {
+    var annotations = getChart().annotations.allItems;
+    for (var n = 0; n < annotations.length; ++n){
+        annotations[n].destroy();
+    }
 }
 
 function addFlag(str, xCord, seriesIndex){

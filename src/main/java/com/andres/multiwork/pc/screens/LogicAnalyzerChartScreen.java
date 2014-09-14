@@ -147,6 +147,9 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         menuItemAnalyzer.setOnAction(actionEvent -> {
             //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
 
+            mainChart.clearAllSeries();
+            mainChart.removeAllAnnotations();
+
             // I2C Sample data
             LogicBitSet data, clk;
             data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 40);
@@ -253,7 +256,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             }
         }
 
-        // Keep track of the current annotation where are in every channel
+        // Keep track of the current annotation in every channel
         final int[] currentAnnotation = new int[GlobalValues.channelsNumber];
         final boolean[] channelReady = new boolean[GlobalValues.channelsNumber];
 
@@ -267,12 +270,11 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                     // Decoded data annotations
                     for (n = currentAnnotation[channel]; currentAnnotation[channel] < dataList.size() && (n-currentAnnotation[channel]) < annotationsPerCycle;
                             ++currentAnnotation[channel]) {
-                        final TimePosition decodedData = decoder.getDecodedData(channel).get(currentAnnotation[channel]);
 
+                        final TimePosition decodedData = decoder.getDecodedData(channel).get(currentAnnotation[channel]);
                         mainChart.addLogicAnnotation(decodedData.getString(), decodedData.startTime() * 1E6, decodedData.endTime() * 1E6, channel, false);
                     }
-                    if(!(currentAnnotation[channel] < dataList.size())) channelReady[channel] = true;
-                    else channelReady[channel] = false;
+                    channelReady[channel] = currentAnnotation[channel] >= dataList.size();
 
                     // All annotations added, redraw chart!
                     if(allChecked(channelReady)) {

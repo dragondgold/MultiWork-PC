@@ -1,5 +1,8 @@
 package com.andres.multiwork.pc.highstocks;
 
+import com.andres.multiwork.pc.GlobalValues;
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -64,6 +67,7 @@ public class HighStockChart {
                 }else if(data.contains("Chart Redraw Event")){
                     updateAnnotations();
 
+                // TODO:
                 }else if(data.contains("Annotation Click")){
                     String[] result = data.split(",");
                     // If annotation text is set to "" then the second string at position [1]
@@ -76,6 +80,7 @@ public class HighStockChart {
 
                     if(annotationEvent != null) annotationEvent.onAnnotationClicked(text, mouseLocation.getX(), mouseLocation.getY());
 
+                // TODO:
                 }else if(data.contains("Annotation Enter")){
                     String[] result = data.split(",");
                     // If annotation text is set to "" then the second string at position [1]
@@ -88,6 +93,7 @@ public class HighStockChart {
 
                     if(annotationEvent != null) annotationEvent.onMouseEnter(text, mouseLocation.getX(), mouseLocation.getY());
 
+                // TODO:
                 }else if(data.contains("Annotation Out")){
                     String[] result = data.split(",");
                     // If annotation text is set to "" then the second string at position [1]
@@ -153,11 +159,20 @@ public class HighStockChart {
     }
 
     public void setXAxisLabel(String str){
-        webEngine.executeScript("getChart().xAxis[0].update({title:{ text: \"" + str + "\"}})");
+        webEngine.executeScript("getChart().xAxis[0].update({title:{ text: '" + str + "'}})");
     }
 
     public void setYAxisLabel(String str){
-        webEngine.executeScript("getChart().yAxis[0].update({title:{ text: \"" + str + "\"}})");
+        webEngine.executeScript("getChart().yAxis[0].update({title:{ text: '" + str + "'}})");
+    }
+
+    public void removeAllAnnotations(){
+        webEngine.executeScript("removeAllAnnotations()");
+        annotationsList.clear();
+    }
+    
+    public void clearAllSeries(){
+        webEngine.executeScript("clearAllSeries()");
     }
 
     /**
@@ -209,15 +224,14 @@ public class HighStockChart {
      */
     public void addRectangleAnnotation(final String text, final double x, final double y, final double width, final double height,
                                        int fontSize, boolean dragX, boolean dragY, String textColor){
-        // Calculate x coordinate to center text in the annotation
-        double annotationCenter = xAxisToPixel(width/2);
-        double dimensions[] = computeFontSize(text, fontSize);
-        double textX = annotationCenter - dimensions[0]/2;
+
+        double displayWidth = Math.abs(xAxisToPixel(width) - xAxisToPixel(0));
+        double displayHeight = Math.abs(yAxisToPixel(height) - yAxisToPixel(0));
 
         webEngine.executeScript("addAnnotation({\n" +
                                             "title: {\n" +
                                                 "text: '" + text + "',\n" +
-                                                "x: " + textX + ",\n" +
+                                                "x: 0,\n" +
                                                 "y: -5,\n" +
                                                 "style: {\n" +
                                                     "fontSize: " + fontSize + ",\n" +
@@ -231,19 +245,20 @@ public class HighStockChart {
                                             "xValue: " + x + ",\n" +
                                             "yValue: " + y + ",\n" +
                                             "shape: {\n" +
-                                                "units: 'values',\n" +
+                                                "units: 'pixels',\n" +
                                                 "type: 'rect',\n" +
                                                 "params: {\n" +
                                                     "fill: '#5E5E5E',\n" +
                                                     "x: 0,\n" +
                                                     "y: 0,\n" +
-                                                    "width: Math.abs(getChart().xAxis[0].toPixels(" + width + ") - getChart().xAxis[0].toPixels(0)),\n" +
-                                                    "height: Math.abs(getChart().yAxis[0].toPixels(" + height + ") - getChart().yAxis[0].toPixels(0)),\n" +
+                                                    "width: " + displayWidth + ",\n" +
+                                                    "height: " + displayHeight + ",\n" +
                                                 "}\n" +
                                             "}\n" +
                                         "})");
-        annotationsList.add(new AnnotationReference(x, width, y, height, text));
-        // Math.abs(getChart().xAxis[0].toPixels(" + width + ") - getChart().xAxis[0].toPixels(0)),
+
+        AnnotationReference annotationReference = new AnnotationReference(x, width, y, height, text);
+        annotationsList.add(annotationReference);
     }
 
     /**
@@ -292,29 +307,6 @@ public class HighStockChart {
     }
 
     private String calculateString(double x1, double x2, String text, int fontSize){
-        // TODO: future implementation? Currently I won't implement the feature of repeating the String to fill annotation
-        /*
-        final String wordSeparator = " ---- ";
-
-        double desiredWidth = Math.abs(xAxisToPixel(x2) - xAxisToPixel(x1));
-        double wordWidth = computeFontSize(text + wordSeparator, fontSize)[0];
-
-        final String string = text + wordSeparator;
-        int wordQuantity = (int) Math.floor(desiredWidth/wordWidth);
-
-        // Append the text calculated times to fit the width, we add at it least once
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(string);
-        for(int n = 0; n < (wordQuantity-1); n++){
-            stringBuilder.append(string);
-        }
-
-        // Remove wordSeparator from the end of the string
-        String result = stringBuilder.toString();
-        result = result.substring(0, result.length() - wordSeparator.length());
-
-        return result;*/
-
         // Don't display the string if the Sting width is greater than the annotation width
         double desiredWidth = Math.abs(xAxisToPixel(x2) - xAxisToPixel(x1));
         double wordWidth = computeFontSize(text, fontSize)[0];
@@ -380,13 +372,16 @@ public class HighStockChart {
                 color = "transparent";
             }
 
-            // Calculate text position to stay in the centre of annotation
-            double annotationCenter = xAxisToPixel(annotation.getWidth()/2);
-            double dimensions[] = computeFontSize(annotation.getText(), fontSize);
-            double textX = annotationCenter - dimensions[0]/2;
+            double displayWidth = Math.abs(xAxisToPixel(annotation.getWidth()) - xAxisToPixel(0));
+            double displayHeight = Math.abs(yAxisToPixel(annotation.getHeight()) - yAxisToPixel(0));
 
-            webEngine.executeScript("updateAnnotation(" + annotation.getWidth() + "," + annotation.getHeight() + ",'" +
-                    annotation.getText() + "'," + fontSize + "," + n + "," + textX + ",'" + color + "')");
+            //double textCenter = computeFontSize(annotation.getText(), fontSize)[0] / 2;
+            //double x1 = xAxisToPixel(annotation.getX1());
+            //double textPosition = textCenter + x1;
+            double textPosition = 0;
+
+            webEngine.executeScript("updateAnnotation(" + displayWidth + "," + displayHeight + ",'" +
+                    annotation.getText() + "'," + fontSize + "," + n + ",'" + color + "'," + textPosition + ")");
         }
     }
 

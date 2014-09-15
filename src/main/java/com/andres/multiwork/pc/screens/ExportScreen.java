@@ -41,7 +41,7 @@ public class ExportScreen extends MultiWorkScreen {
             ((Button)fxmlLoader.getNamespace().get("exportButton")).setOnAction(event -> {
                 if(channelToExport != EXPORT_ALL_CHANNELS) {
                     if (!fileName.getText().isEmpty()) {
-                        Exporter exporter = new Exporter(Decoder.getDecoder().getRawData(channelToExport), Decoder.getDecoder().getDecodedData(channelToExport));
+                        Exporter exporter = new Exporter(Decoder.getDecoder(), channelToExport);
                         exporter.setTitle(title.getText());
                         exporter.setDate(datePicker.getEditor().getText());
                         exporter.setDescription(description.getText());
@@ -55,7 +55,7 @@ public class ExportScreen extends MultiWorkScreen {
                 }else{
                     for(int n = 0; n < GlobalValues.channelsNumber; ++n){
                         if (!fileName.getText().isEmpty()) {
-                            Exporter exporter = new Exporter(Decoder.getDecoder().getRawData(n), Decoder.getDecoder().getDecodedData(n));
+                            Exporter exporter = new Exporter(Decoder.getDecoder(), n);
                             exporter.setTitle(title.getText());
                             exporter.setDate(datePicker.getEditor().getText());
                             exporter.setDescription(description.getText());

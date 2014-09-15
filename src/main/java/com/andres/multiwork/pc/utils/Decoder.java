@@ -19,6 +19,8 @@ public class Decoder {
     private LogicBitSet[] channelsData = new LogicBitSet[GlobalValues.channelsNumber];
     private ArrayList<List<TimePosition>> decodedData = new ArrayList<>();
 
+    private long sampleFrequency[] = new long[GlobalValues.channelsNumber];
+
     private static Decoder decoderInstance;
 
     /**
@@ -65,6 +67,7 @@ public class Decoder {
             decodedData.add(new ArrayList<>());
         }
 
+        for(int n = 0; n < sampleFrequency.length; ++n) sampleFrequency[n] = sampleFreq;
     }
 
     /**
@@ -132,6 +135,32 @@ public class Decoder {
     }
 
     /**
+     * Get the sample frequency of the specified channel
+     * @param channelNumber channel number from which retrieve frequency, 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
+     * @return sample frequency
+     */
+    public long getSampleFrequency(int channelNumber){
+        return sampleFrequency[channelNumber];
+    }
+
+    /**
+     * Set the sample frequency of the specified channel
+     * @param sampleFrequency sample frequency for the channel
+     * @param channelNumber channel number to se frequency, 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
+     */
+    public void setSampleFrequency(long sampleFrequency, int channelNumber){
+        this.sampleFrequency[channelNumber] = sampleFrequency;
+    }
+
+    /**
+     * Set the sample frequency for all the channels
+     * @param sampleFrequency sample frequency for the channels
+     */
+    public void setSampleFrequency(long sampleFrequency){
+        for(int n = 0; n < this.sampleFrequency.length; ++n) this.sampleFrequency[n] = sampleFrequency;
+    }
+
+    /**
      * Decode all the channels with the current settings saved in the {@link org.apache.commons.configuration.XMLConfiguration}
      * object passed in the constructor
      */
@@ -156,7 +185,7 @@ public class Decoder {
         spiProtocol.getDecodedData().clear();
 
         int protocol = generalSettings.getInt("protocol" + channelNumber, GlobalValues.uartProtocol);
-        int sampleRate = generalSettings.getInt("sampleRate", 4000000);
+        int sampleRate = (int)sampleFrequency[channelNumber];
 
         switch (protocol){
             case GlobalValues.i2cProtocol:
@@ -173,7 +202,7 @@ public class Decoder {
                 i2CProtocol.setClockSource(clockProtocol);
 
                 // Decode and store the data. Create a copy of the decoded data List because if decode() method is called
-                //  again for another channel we will clear all the decoded data in the channels to decoded the new one
+                //  again for another channel we will clear all the decoded data in the channels to decode the new one
                 //  and the data in the list will be deleted as well (reference)
                 i2CProtocol.decode(0);
                 decodedData.set(channelNumber, new ArrayList<>(i2CProtocol.getDecodedData()));

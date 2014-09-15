@@ -26,15 +26,17 @@ public class Exporter {
 
     private final LogicBitSet samplesData;
     private final List<TimePosition> decodedData;
+    private long sampleRate;
 
     /**
      * Export channels data to the specified file
-     * @param samplesData list of bits containing the sampled data
-     * @param decodedData list containing the decoded data
+     * @param decoder Decoder from where to take the data
+     *  @param channelToExport number of channel to export from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      */
-    public Exporter(LogicBitSet samplesData, List<TimePosition> decodedData){
-        this.samplesData = samplesData;
-        this.decodedData = decodedData;
+    public Exporter(Decoder decoder, int channelToExport){
+        this.samplesData = decoder.getRawData(channelToExport);
+        this.decodedData = decoder.getDecodedData(channelToExport);
+        this.sampleRate = decoder.getSampleFrequency();
     }
 
     public void export(){
@@ -47,17 +49,30 @@ public class Exporter {
      *  using commas.
      * The left column contains the sample number starting from 0. The right column contains the character
      *  '1' or '0' according to the state of the channel at the given sample.
+     *
+     *  Before the samples are written a row indicating the sample frequency in Hz is written and another
+     *   row indicating what each column is.
      */
     private void exportSamples(){
         if(isExportSamples() && samplesData != null){
             try {
 
-                CSVWriter writer = new CSVWriter(new FileWriter(new File(fileName + samplesSuffix)), ',', CSVWriter.NO_QUOTE_CHARACTER);
+                BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName + samplesSuffix));
+                CSVWriter writer = new CSVWriter(bufferedWriter, ',', CSVWriter.NO_QUOTE_CHARACTER);
+
+                writeHeader(bufferedWriter);
+                bufferedWriter.newLine();
+
+                // Write the sample rate in Hz
+                writer.writeNext(new String[] { "Sample Rate", String.valueOf(sampleRate)});
+                writer.writeNext(new String[] { "Sample Number", "Logic State"});
 
                 // Write bit index and then bit value using char '1' or '0' separated using ','
                 for(int n = 0; n < samplesData.length(); n++){
                     char bit = (samplesData.get(n)) ? '1' : '0';
-                    String[] entries = (n + "#" + bit).split("#");
+
+                    // n+1 because the sample number should start in 1 not 0
+                    String[] entries = ((n+1) + "#" + bit).split("#");
 
                     writer.writeNext(entries);
                 }
@@ -79,6 +94,7 @@ public class Exporter {
 
                 BufferedWriter writer = new BufferedWriter(new FileWriter(new File(fileName + dataSuffix)));
                 writeHeader(writer);
+                writer.newLine();
 
                 for(TimePosition data : decodedData){
                     String event = data.getString();
@@ -97,13 +113,18 @@ public class Exporter {
 
     /**
      * Writes a header in the given {@link java.io.BufferedWriter}. It contains a title, date
-     *  and description.
+     *  and description. Every line is started with a '#' character
      * @param writer {@link java.io.BufferedWriter} to write the header
      * @throws IOException
      */
     private void writeHeader(BufferedWriter writer) throws IOException {
-        writer.write(title + " - " + date + "\n");
-        writer.write(description + "\n");
+        writer.write("# " + title + " - " + date + "\n");
+
+        String[] lines = description.split("\\n");
+        for(int n = 0; n < lines.length; ++n) {
+            if(n == 0) writer.write("# " + lines[n] + "\n");
+            else writer.write("#  " + lines[n] + "\n");
+        }
     }
 
     /**

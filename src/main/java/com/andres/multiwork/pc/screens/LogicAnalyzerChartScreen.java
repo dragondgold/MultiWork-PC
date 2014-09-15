@@ -157,6 +157,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
             byte[] buffer = Decoder.bitSetToBuffer(data, clk);
             decoder.setData(buffer);
+            // Set the same sample frequency for all the channels
+            decoder.setSampleFrequency(GlobalValues.xmlSettings.getInt("sampleRate", 4000000));
             decoder.decodeAll();
 
             updateChart();

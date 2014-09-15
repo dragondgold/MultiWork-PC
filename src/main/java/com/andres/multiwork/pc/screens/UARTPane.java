@@ -12,6 +12,7 @@ import javafx.scene.control.TextField;
 
 import java.io.IOException;
 
+@SuppressWarnings("unchecked")
 public class UARTPane extends SettingsPane {
 
     private ChoiceBox<String> choiceParity;
@@ -56,17 +57,14 @@ public class UARTPane extends SettingsPane {
 
             };
 
-            baudChangeListener = (observableValue, s, newValue) -> {
-                GlobalValues.xmlSettings.setProperty("baudRate" + getChannel(), Math.abs(Integer.valueOf(newValue)));
-            };
+            baudChangeListener = (observableValue, s, newValue) ->
+                    GlobalValues.xmlSettings.setProperty("baudRate" + getChannel(), Math.abs(Integer.valueOf(newValue)));
 
-            nineBitsChangeListener = (observableValue, aBoolean, newValue) -> {
-                GlobalValues.xmlSettings.setProperty("nineBitsMode" + getChannel(), newValue);
-            };
+            nineBitsChangeListener = (observableValue, aBoolean, newValue) ->
+                    GlobalValues.xmlSettings.setProperty("nineBitsMode" + getChannel(), newValue);
 
-            twoStopBitsChangeListener = (observableValue, aBoolean, newValue) -> {
-                GlobalValues.xmlSettings.setProperty("twoStopBits" + getChannel(), newValue);
-            };
+            twoStopBitsChangeListener = (observableValue, aBoolean, newValue) ->
+                    GlobalValues.xmlSettings.setProperty("twoStopBits" + getChannel(), newValue);
 
         } catch (IOException e) {
             e.printStackTrace();

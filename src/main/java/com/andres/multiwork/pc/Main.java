@@ -9,12 +9,10 @@ import com.andres.multiwork.pc.screens.SettingsScreen;
 import com.andres.multiwork.pc.utils.BuildProcedure;
 import com.andres.multiwork.pc.utils.ScreenManager;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.File;

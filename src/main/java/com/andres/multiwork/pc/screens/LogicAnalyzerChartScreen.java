@@ -1,7 +1,6 @@
 package com.andres.multiwork.pc.screens;
 
 import com.andres.multiwork.pc.connection.OnNewDataReceived;
-import com.andres.multiwork.pc.highstocks.AnnotationEvent;
 import com.andres.multiwork.pc.highstocks.HighStockChart;
 import com.andres.multiwork.pc.highstocks.SeriesLegendShiftClick;
 import com.andres.multiwork.pc.utils.Decoder;
@@ -21,6 +20,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
     private final HighStockChart mainChart;
@@ -298,8 +298,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
     }
 
     private boolean allChecked(boolean[] data){
-        for(int n = 0; n < data.length; ++n){
-            if(!data[n]) return false;
+        for (boolean aData : data) {
+            if (!aData) return false;
         }
         return true;
     }

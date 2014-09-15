@@ -10,6 +10,7 @@ import javafx.scene.control.ChoiceBox;
 
 import java.io.IOException;
 
+@SuppressWarnings("unchecked")
 public class I2CPane extends SettingsPane {
 
     private ChoiceBox<String> choiceClockChannel;

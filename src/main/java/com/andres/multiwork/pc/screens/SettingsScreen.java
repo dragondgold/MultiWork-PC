@@ -6,8 +6,6 @@ import com.andres.multiwork.pc.utils.SettingsPane;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -19,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class SettingsScreen extends MultiWorkScreen {
 
     private static final int GENERAL_SETTINGS = 1;
@@ -171,12 +170,7 @@ public class SettingsScreen extends MultiWorkScreen {
 
         // File Menu
         menuBar.getMenus().get(0).setText(GlobalValues.resourceBundle.getString("menuFile"));
-        menuBar.getMenus().get(0).setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                getStage().close();
-            }
-        });
+        menuBar.getMenus().get(0).setOnAction(actionEvent -> getStage().close());
 
         // Show screen
         defineChangeListeners();
@@ -207,9 +201,8 @@ public class SettingsScreen extends MultiWorkScreen {
             protocolToPane(GlobalValues.xmlSettings.getInt("protocol" + currentChannel, GlobalValues.uartProtocol));
         };
 
-        triggerChangeListener = (observableValue, oldValue, newValue) -> {
-            GlobalValues.xmlSettings.setProperty("simpleTrigger" + currentChannel, newValue);
-        };
+        triggerChangeListener = (observableValue, oldValue, newValue) ->
+                GlobalValues.xmlSettings.setProperty("simpleTrigger" + currentChannel, newValue);
     }
 
     /**

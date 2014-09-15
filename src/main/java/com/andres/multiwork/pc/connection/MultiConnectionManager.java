@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class MultiConnectionManager {
 
     // Connections
@@ -39,12 +40,8 @@ public class MultiConnectionManager {
     }
 
     /** Listener for incoming data from USB and Bluetooth */
-    private OnNewDataReceived dataReceiverListener = new OnNewDataReceived() {
-        @Override
-        public void onNewDataReceived(byte[] data, InputStream inputStream, OutputStream outputStream, String source) {
+    private OnNewDataReceived dataReceiverListener = (data, inputStream, outputStream, source) ->
             notifyListeners(data, inputStream, outputStream, source);
-        }
-    };
 
     /** Notify to all registered listener of new incoming data */
     private void notifyListeners(byte[] data, InputStream inputStream, OutputStream outputStream, String source){

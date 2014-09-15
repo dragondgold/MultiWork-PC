@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+@SuppressWarnings({"FieldCanBeLocal", "unchecked"})
 public class RawDataScreen extends MultiWorkScreen {
 
     private final Decoder decoder = Decoder.getDecoder().setSettings(GlobalValues.xmlSettings);
@@ -55,11 +56,10 @@ public class RawDataScreen extends MultiWorkScreen {
      * @param channelNumber channel number from 0 to {@link com.andres.multiwork.pc.GlobalValues#channelsNumber}-1
      */
     public void setChannelToShow(int channelNumber){
-        int channelToShow = channelNumber;
-        getStage().setTitle(GlobalValues.resourceBundle.getString("channel") + " " + (channelToShow+1));
+        getStage().setTitle(GlobalValues.resourceBundle.getString("channel") + " " + (channelNumber+1));
 
         decodedTableItems.clear();
-        for (TimePosition data : decoder.getDecodedData(channelToShow)){
+        for (TimePosition data : decoder.getDecodedData(channelNumber)){
             DecodedTableItem item = new DecodedTableItem(data.getString(), timeToLabel(data.startTime()), timeToLabel(data.endTime()));
             decodedTableItems.add(item);
         }

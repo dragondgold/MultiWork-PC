@@ -3,7 +3,6 @@ package com.andres.multiwork.pc.screens;
 import com.andres.multiwork.pc.GlobalValues;
 import com.andres.multiwork.pc.utils.SettingsPane;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -13,6 +12,7 @@ import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 
+@SuppressWarnings("unchecked")
 public class GeneralPane extends SettingsPane{
 
     private ChoiceBox<Integer> sampleRateChoice;
@@ -44,13 +44,11 @@ public class GeneralPane extends SettingsPane{
             sampleRateList.add(10);
             sampleRateChoice.setItems(sampleRateList);
 
-            sampleRateChangeListener = (ChangeListener<Integer>) (observableValue, integer, newValue) -> {
-                GlobalValues.xmlSettings.setProperty("sampleRate", newValue);
-            };
+            sampleRateChangeListener = (observableValue, integer, newValue) ->
+                    GlobalValues.xmlSettings.setProperty("sampleRate", newValue);
 
-            simpleTriggerGeneralListener = (ChangeListener<Boolean>) (observable, oldValue, newValue) -> {
-                GlobalValues.xmlSettings.setProperty("simpleTriggerGeneral", newValue);
-            };
+            simpleTriggerGeneralListener = (observable, oldValue, newValue) ->
+                    GlobalValues.xmlSettings.setProperty("simpleTriggerGeneral", newValue);
 
         } catch (IOException e) { e.printStackTrace(); }
     }

@@ -6,7 +6,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 public class Decoder {
 
@@ -18,7 +17,7 @@ public class Decoder {
     private XMLConfiguration generalSettings;
 
     private LogicBitSet[] channelsData = new LogicBitSet[GlobalValues.channelsNumber];
-    private ArrayList<List<TimePosition>> decodedData = new ArrayList<List<TimePosition>>();
+    private ArrayList<List<TimePosition>> decodedData = new ArrayList<>();
 
     private static Decoder decoderInstance;
 
@@ -235,7 +234,7 @@ public class Decoder {
     private void bufferToLogicBitSet (final byte[] data, LogicBitSet[] list) {
 
         // Clear BitSet
-        for(int n=0; n < list.length; ++n) list[n].clear();
+        for (LogicBitSet aList : list) aList.clear();
 
         for(int n=0; n < data.length; ++n){						// Go through received bytes
             for(int bit=0; bit < list.length; ++bit){			// Go through each "channel"

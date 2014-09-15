@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 public class ScreenManager {
 
-    private HashMap<String, BuildProcedure> buildProcedureMap = new HashMap<String, BuildProcedure>();
-    private HashMap<String, MultiWorkScreen> screenMap = new HashMap<String, MultiWorkScreen>();
+    private HashMap<String, BuildProcedure> buildProcedureMap = new HashMap<>();
+    private HashMap<String, MultiWorkScreen> screenMap = new HashMap<>();
 
     public ScreenManager(){}
 

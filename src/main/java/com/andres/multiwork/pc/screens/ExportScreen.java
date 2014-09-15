@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class ExportScreen extends MultiWorkScreen {
 
     public static final int EXPORT_ALL_CHANNELS = -1;

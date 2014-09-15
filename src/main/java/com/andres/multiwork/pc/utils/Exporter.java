@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class Exporter {
 
     private boolean exportData = true;

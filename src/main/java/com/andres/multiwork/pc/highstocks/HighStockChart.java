@@ -1,8 +1,5 @@
 package com.andres.multiwork.pc.highstocks;
 
-import com.andres.multiwork.pc.GlobalValues;
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -14,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class HighStockChart {
 
     private File chartHtmlFile;

@@ -11,6 +11,7 @@ import javafx.scene.control.ChoiceBox;
 
 import java.io.IOException;
 
+@SuppressWarnings("unchecked")
 public class SPIPane extends SettingsPane{
 
     private ChoiceBox<String> choiceClockChannel;
@@ -94,6 +95,7 @@ public class SPIPane extends SettingsPane{
     /**
      * Set SPI mode based on CPOL and CPHA state
      */
+    @SuppressWarnings("ConstantConditions")
     private void configureSPIMode(){
         if(!cphaCheck.isSelected() && !cpolCheck.isSelected()){
             choiceSPIMode.getSelectionModel().select(0);

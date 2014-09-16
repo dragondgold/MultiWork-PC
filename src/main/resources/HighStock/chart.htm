@@ -171,6 +171,24 @@ $(function() {
                         height: 100
                     }
                 }
+            },
+            {
+                title: 'test 2',
+                anchorX: 'left',
+                anchorY: 'top',
+                xValue: 2,
+                yValue: 2,
+                shape: {
+                    type: 'rect',
+                    //units: 'values',
+                    params: {
+                        fill: 'red',
+                        x: 0,
+                        y: 0,
+                        width: 200,
+                        height: 100
+                    }
+                }
             }
         ],*/
 
@@ -258,16 +276,16 @@ function updateAnnotation(width, height, text, fontSize, index, titleColor, x){
 
 function clearAllSeries() {
     for (var n = 0; n < getChart().series.length; ++n) {
-        getChart().series[n].setData([[0,0]]);
+        getChart().series[n].setData([[0,0]], false);
     }
-
+    redrawChart();
 }
 
 function removeAllAnnotations() {
     var annotations = getChart().annotations.allItems;
-    for (var n = 0; n < annotations.length; ++n){
-        annotations[n].destroy();
-    }
+    while(annotations.length > 0) annotations[0].destroy();
+
+    getChart().redrawAnnotations();
 }
 
 function addFlag(str, xCord, seriesIndex){

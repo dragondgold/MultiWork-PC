@@ -5,7 +5,6 @@ import com.andres.multiwork.pc.highstocks.HighStockChart;
 import com.andres.multiwork.pc.highstocks.SeriesLegendShiftClick;
 import com.andres.multiwork.pc.utils.Decoder;
 import com.andres.multiwork.pc.GlobalValues;
-import com.andres.multiwork.pc.utils.ImportEvent;
 import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.protocolanalyzer.api.*;
 import javafx.animation.AnimationTimer;
@@ -282,8 +281,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                         mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
                     }
 
-                    // Increment time in uS
-                    time += (1.0d / decoder.getSampleFrequency()) * 1000000d;
+                    // Increment time in uS for this channel
+                    time += (1.0d / decoder.getSampleFrequency(channel)) * 1000000d;
                 }
             }
         }
@@ -301,7 +300,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                     int n;
                     // Decoded data annotations
                     for (n = currentAnnotation[channel]; currentAnnotation[channel] < dataList.size() && (n-currentAnnotation[channel]) < annotationsPerCycle;
-                            ++currentAnnotation[channel]) {
+                         ++currentAnnotation[channel]) {
 
                         final TimePosition decodedData = decoder.getDecodedData(channel).get(currentAnnotation[channel]);
                         mainChart.addLogicAnnotation(decodedData.getString(), decodedData.startTime() * 1E6, decodedData.endTime() * 1E6, channel, false);
@@ -327,6 +326,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                 }
             }
         }.start();
+
     }
 
     private boolean allChecked(boolean[] data){

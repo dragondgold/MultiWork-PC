@@ -5,6 +5,7 @@ import com.andres.multiwork.pc.highstocks.HighStockChart;
 import com.andres.multiwork.pc.highstocks.SeriesLegendShiftClick;
 import com.andres.multiwork.pc.utils.Decoder;
 import com.andres.multiwork.pc.GlobalValues;
+import com.andres.multiwork.pc.utils.ImportEvent;
 import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.protocolanalyzer.api.*;
 import javafx.animation.AnimationTimer;
@@ -108,6 +109,14 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             }
         });*/
 
+        // When import finishes redraw the chart with all the current data in the Decoder
+        ((ImportScreen)GlobalValues.screenManager.getScreen("ImportScreen")).setOnImportFinished(() -> {
+            mainChart.clearAllSeries();
+            mainChart.removeAllAnnotations();
+
+            updateChart(false);
+        });
+
         // Load font and CSS file to apply it to the current scene
         Font.loadFont(LogicAnalyzerChartScreen.class.getResource("/UnicaOne-Regular.ttf").toExternalForm(), 12);
         getScene().getStylesheets().add(LogicAnalyzerChartScreen.class.getResource("/myStyle.css").toExternalForm());
@@ -122,11 +131,13 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         // File Menu
         Menu menuFile = new Menu(GlobalValues.resourceBundle.getString("menuFile"));
         MenuItem menuItemSettings = new MenuItem(GlobalValues.resourceBundle.getString("menuSettings"));
+        MenuItem menuItemImport = new MenuItem(GlobalValues.resourceBundle.getString("import"));
 
         // Logic analyzer menu
         Menu menuAnalyzer = new Menu(GlobalValues.resourceBundle.getString("logicAnalyzer"));
+        MenuItem menuItemCaptureAnalyzer = new MenuItem(GlobalValues.resourceBundle.getString("menuCaptureAnalyze"));
         MenuItem menuItemAnalyzer = new MenuItem(GlobalValues.resourceBundle.getString("menuAnalyze"));
-        menuItemAnalyzer.setAccelerator(analyzeCombination);
+        menuItemCaptureAnalyzer.setAccelerator(analyzeCombination);
 
         // View menu
         Menu menuView = new Menu(GlobalValues.resourceBundle.getString("menuView"));
@@ -135,7 +146,11 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
         // Add items to Menus
         menuFile.getItems().add(menuItemSettings);
+        menuFile.getItems().add(menuItemImport);
+
+        menuAnalyzer.getItems().add(menuItemCaptureAnalyzer);
         menuAnalyzer.getItems().add(menuItemAnalyzer);
+
         menuView.getItems().add(menuItemFullscreen);
 
         // Add Menu to MenuBar
@@ -143,8 +158,11 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
         /** Events */
         menuItemSettings.setOnAction(actionEvent -> GlobalValues.screenManager.show("SettingsScreen"));
+        menuItemImport.setOnAction(actionEvent -> {
+            GlobalValues.screenManager.show("ImportScreen");
+        });
 
-        menuItemAnalyzer.setOnAction(actionEvent -> {
+        menuItemCaptureAnalyzer.setOnAction(actionEvent -> {
             //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
 
             mainChart.clearAllSeries();
@@ -153,15 +171,23 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             // I2C Sample data
             LogicBitSet data, clk;
             data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 40);
-            clk =  LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 40);
+            clk = LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 40);
 
             byte[] buffer = Decoder.bitSetToBuffer(data, clk);
-            decoder.setData(buffer);
+            decoder.setRawData(buffer);
             // Set the same sample frequency for all the channels
             decoder.setSampleFrequency(GlobalValues.xmlSettings.getInt("sampleRate", 4000000));
             decoder.decodeAll();
 
-            updateChart();
+            updateChart(false);
+        });
+
+        menuItemAnalyzer.setOnAction(actionEvent -> {
+            // Remove decoded data and analyze it again with the current settings
+            mainChart.removeAllAnnotations();
+            decoder.decodeAll();
+
+            updateChart(true);
         });
 
         menuItemFullscreen.setOnAction(actionEvent -> getStage().setFullScreen(true));
@@ -182,9 +208,11 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         onNewDataReceived = (data, inputStream, outputStream, source) -> {
             System.out.println("Data received!");
 
-            decoder.setData(data);
+            // Set the same sample frequency for all the channels
+            decoder.setSampleFrequency(GlobalValues.xmlSettings.getInt("sampleRate", 4000000));
+            decoder.setRawData(data);
             decoder.decodeAll();
-            updateChart();
+            updateChart(false);
         };
     }
 
@@ -217,44 +245,46 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
     /**
      * Updates chart with the new decoded data from {@link com.andres.multiwork.pc.utils.Decoder}
      */
-    private void updateChart(){
+    private void updateChart(boolean onlyAnnotations){
         mainChart.showLoading("Processing data...");
 
-        // Draw waveforms in the chart. We only put a point every time signal changes state. On this way we avoid
-        //  adding to series large amount of data in the chart (slowing down rendering) without loosing visual quality of
-        //  the signal.
-        for(int channel = 0; channel < GlobalValues.channelsNumber; ++channel){
-            final LogicBitSet bitsData = decoder.getRawData(channel);
-            final int samplesNumber = decoder.getMaxSamplesNumber();
-            double time = initTime;
-            System.out.println("Channel " + channel + " contains " + bitsData.size());
+        if(!onlyAnnotations) {
+            // Draw waveforms in the chart. We only put a point every time signal changes state. On this way we avoid
+            //  adding to series large amount of data in the chart (slowing down rendering) without loosing visual quality of
+            //  the signal.
+            for (int channel = 0; channel < GlobalValues.channelsNumber; ++channel) {
+                final LogicBitSet bitsData = decoder.getRawData(channel);
+                final int samplesNumber = decoder.getMaxSamplesNumber();
+                double time = initTime;
+                System.out.println("Channel " + channel + " contains " + bitsData.size());
 
-            boolean bitState = false;
-            for(int n = 0; n < samplesNumber; ++n){
-                // Initial point
-                if(n == 0){
-                    bitState = bitsData.get(0);
-                    mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
+                boolean bitState = false;
+                for (int n = 0; n < samplesNumber; ++n) {
+                    // Initial point
+                    if (n == 0) {
+                        bitState = bitsData.get(0);
+                        mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
 
-                    // Found an state change, add this point
-                }else if(bitsData.get(n) != bitState){
-                    bitState = bitsData.get(n);
+                        // Found an state change, add this point
+                    } else if (bitsData.get(n) != bitState) {
+                        bitState = bitsData.get(n);
 
-                    double tTime = time - 1.0d/decoder.getSampleFrequency();
+                        double tTime = time - 1.0d / decoder.getSampleFrequency();
 
-                    // Previous state
-                    mainChart.addLogicData(channel, tTime, bitsData.get(n-1), false, false);
+                        // Previous state
+                        mainChart.addLogicData(channel, tTime, bitsData.get(n - 1), false, false);
 
-                    // Current state
-                    mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
+                        // Current state
+                        mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
 
-                    // Add seriesContextMenu the final point, doesn't care if the state didn't change
-                }else if(n == (samplesNumber-1)){
-                    mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
+                        // Add seriesContextMenu the final point, doesn't care if the state didn't change
+                    } else if (n == (samplesNumber - 1)) {
+                        mainChart.addLogicData(channel, time, bitsData.get(n), false, false);
+                    }
+
+                    // Increment time in uS
+                    time += (1.0d / decoder.getSampleFrequency()) * 1000000d;
                 }
-
-                // Increment time in uS
-                time += (1.0d/decoder.getSampleFrequency())*1000000d;
             }
         }
 

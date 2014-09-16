@@ -74,8 +74,17 @@ public class Decoder {
      * Define the byte[] array containing the data from the logic analyzer's channels
      * @param data byte[] array containing the data from the logic analyzer's channels
      */
-    public void setData(byte[] data){
+    public void setRawData(byte[] data){
         bufferToLogicBitSet(data, channelsData);
+    }
+
+    /**
+     * Set the data for a specified channel
+     * @param data data to set
+     * @param channelNumber channel number to set data
+     */
+    public void setRawData(LogicBitSet data, int channelNumber){
+        channelsData[channelNumber] = data;
     }
 
     /**

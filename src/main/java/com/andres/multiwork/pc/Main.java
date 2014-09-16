@@ -1,11 +1,8 @@
 package com.andres.multiwork.pc;
 
 import com.andres.multiwork.pc.connection.MultiConnectionManager;
-import com.andres.multiwork.pc.screens.ExportScreen;
-import com.andres.multiwork.pc.screens.LogicAnalyzerChartScreen;
-import com.andres.multiwork.pc.screens.RawDataScreen;
+import com.andres.multiwork.pc.screens.*;
 import com.andres.multiwork.pc.utils.MultiWorkScreen;
-import com.andres.multiwork.pc.screens.SettingsScreen;
 import com.andres.multiwork.pc.utils.BuildProcedure;
 import com.andres.multiwork.pc.utils.ScreenManager;
 import javafx.application.Application;
@@ -108,11 +105,26 @@ public class Main extends Application {
                 multiWorkScreen.show();
             }
         });
+        GlobalValues.screenManager.addScreen("ImportScreen", new BuildProcedure() {
+            @Override
+            public MultiWorkScreen build() {
+                Stage stage = new Stage();
+                stage.setResizable(false);
 
+                return new ImportScreen(stage, 350, 510);
+            }
+
+            @Override
+            public void show(Stage stage, MultiWorkScreen multiWorkScreen, Scene scene) {
+                multiWorkScreen.show();
+            }
+        });
+
+        GlobalValues.screenManager.build("ExportScreen");
+        GlobalValues.screenManager.build("ImportScreen");
         GlobalValues.screenManager.build("SettingsScreen");
         GlobalValues.screenManager.buildAndShowScreen("ChartScreen");
         GlobalValues.screenManager.build("RawDataScreen");
-        GlobalValues.screenManager.build("ExportScreen");
 
         // Close JavaFX application. Otherwise the UI is hidden but the process is still running in background
         primaryStage.setOnCloseRequest(event -> {

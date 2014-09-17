@@ -15,6 +15,12 @@ public class MultiWorkImporter implements Importer {
     private final Decoder decoder;
     private final String fileName;
 
+    /**
+     * Import data using the MultiWork file format that {@link com.andres.multiwork.pc.utils.Exporter} uses.
+     * @param decoder the decoder where to store the imported data
+     * @param fileName from what file we have to import the data
+     * @param channelNumber to what channel we should save the data
+     */
     public MultiWorkImporter(Decoder decoder, String fileName, int channelNumber) {
         this.channelNumber = channelNumber;
         this.decoder = decoder;
@@ -27,7 +33,6 @@ public class MultiWorkImporter implements Importer {
 
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
-            // CSVReader starts skipping the first 4 lines
             CSVReader csvReader = new CSVReader(bufferedReader, ',', CSVWriter.NO_QUOTE_CHARACTER);
             LogicBitSet logicBitSet = new LogicBitSet();
 

@@ -6,7 +6,20 @@
 
     <groupId>groupId</groupId>
     <artifactId>MultiWork-PC</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
+
+    <developers>
+        <developer>
+            <id>Tmax</id>
+            <name>Andres Torti</name>
+            <email>torti.max@gmail.com</email>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javafx.version>2.2</javafx.version>
+    </properties>
 
     <dependencies>
 
@@ -22,34 +35,62 @@
             <version>2.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>javafx</artifactId>
+            <version>${javafx.version}</version>
+            <systemPath>${java.home}/lib/ext/jfxrt.jar</systemPath>
+            <scope>system</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ant-javafx</artifactId>
+            <version>${javafx.version}</version>
+            <systemPath>${java.home}/../lib/ant-javafx.jar</systemPath>
+            <scope>system</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ProtocolAnalyzer</groupId>
+            <artifactId>com.protocolanalyzer.api</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/Protocol-decoder.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>ProtocolAnalyzer</groupId>
+            <artifactId>bluecove</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/bluecove-2.1.1-SNAPSHOT.jar</systemPath>
+        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <groupId>com.zenjava</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>8.1.1</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.andres.multiwork.pc.Main</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
+                    <mainClass>com.andres.multiwork.pc.Main</mainClass>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

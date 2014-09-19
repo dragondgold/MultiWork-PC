@@ -1,12 +1,15 @@
 package com.andres.multiwork.pc.highstocks;
 
+import com.andres.multiwork.pc.screens.SettingsScreen;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -38,9 +41,7 @@ public class HighStockChart {
         webEngine = webView.getEngine();
 
         try {
-            chartHtmlFile = new File(getClass().getResource("/HighStock/chart.htm").toURI());
-            webEngine.load(chartHtmlFile.toURI().toURL().toString());
-
+            webEngine.load(getClass().getResource("/HighStock/chart.htm").toURI().toURL().toString());
             pane.getChildren().add(webView);
 
             webView.setContextMenuEnabled(false);
@@ -109,7 +110,7 @@ public class HighStockChart {
                 }
             });
 
-        } catch (URISyntaxException | MalformedURLException e) { e.printStackTrace(); }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     public void setOnChartLoaded(ChartLoaded chartLoaded) {

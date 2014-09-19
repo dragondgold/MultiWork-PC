@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -20,6 +20,42 @@
     <orderEntry type="library" name="Maven: commons-digester:commons-digester:1.8.1" level="project" />
     <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.8.3" level="project" />
     <orderEntry type="library" name="Maven: net.sf.opencsv:opencsv:2.0" level="project" />
+    <orderEntry type="module-library">
+      <library name="Maven: com.oracle:javafx:2.2">
+        <CLASSES>
+          <root url="jar://C:/Program Files/Java/jdk1.8.0_20/jre/lib/ext/jfxrt.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Maven: com.oracle:ant-javafx:2.2">
+        <CLASSES>
+          <root url="jar://C:/Program Files/Java/jdk1.8.0_20/lib/ant-javafx.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Maven: ProtocolAnalyzer:com.protocolanalyzer.api:1.0">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/libs/Protocol-decoder.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Maven: ProtocolAnalyzer:bluecove:1.0">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/libs/bluecove-2.1.1-SNAPSHOT.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
 

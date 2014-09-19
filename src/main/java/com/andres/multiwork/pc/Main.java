@@ -13,6 +13,9 @@ import javafx.stage.Stage;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -134,7 +137,16 @@ public class Main extends Application {
         });
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
+        if(args.length > 0) {
+            // Log system output to file instead of console
+            if (args[0].equals("log")) {
+                System.setOut(new PrintStream(new FileOutputStream("log.txt", true)));
+                System.setErr(new PrintStream(new FileOutputStream("log.txt", true)));
+                System.out.println("------------------------------------------");
+            }
+        }
+
         launch(args);
     }
 }

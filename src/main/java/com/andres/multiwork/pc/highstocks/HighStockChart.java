@@ -1,23 +1,17 @@
 package com.andres.multiwork.pc.highstocks;
 
-import com.andres.multiwork.pc.screens.SettingsScreen;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
 import java.awt.*;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class HighStockChart {
 
-    private File chartHtmlFile;
     private WebView webView;
     private WebEngine webEngine;
 

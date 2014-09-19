@@ -36,35 +36,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>javafx</artifactId>
-            <version>${javafx.version}</version>
-            <systemPath>${java.home}/lib/ext/jfxrt.jar</systemPath>
-            <scope>system</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>ant-javafx</artifactId>
-            <version>${javafx.version}</version>
-            <systemPath>${java.home}/../lib/ant-javafx.jar</systemPath>
-            <scope>system</scope>
-        </dependency>
-
-        <dependency>
             <groupId>ProtocolAnalyzer</groupId>
             <artifactId>com.protocolanalyzer.api</artifactId>
             <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/Protocol-decoder.jar</systemPath>
         </dependency>
 
         <dependency>
-            <groupId>ProtocolAnalyzer</groupId>
+            <groupId>Bluecove</groupId>
             <artifactId>bluecove</artifactId>
             <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/bluecove-2.1.1-SNAPSHOT.jar</systemPath>
         </dependency>
 
     </dependencies>

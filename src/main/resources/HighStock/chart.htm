@@ -195,41 +195,42 @@ $(function() {
         // Data and flags series
 		series: [{
             //data: [[0,0], [1,1], [1.5,0.5], [2, 3], [4, 1], [8, 4]],
-            data: [[0,0]],
+            data: [[0,1]],
 			name: 'Channel 1',
             type: 'line',
             id: 'C1'
 		}, {
-            data: [[0,0]],
+            data: [[0,8]],
 			name: 'Channel 2',
             type: 'line',
             id: 'C2'
 		}, {
-            data: [[0,0]],
+            data: [[0,15]],
 			name: 'Channel 3',
             type: 'line',
             id: 'C3'
 		}, {
-            data: [[0,0]],
+            data: [[0,22]],
 			name: 'Channel 4',
             type: 'line',
             id: 'C4'
 		}, {
-            data: [[0,0]],
+            data: [[0,29]],
 			name: 'Channel 5',
             type: 'line',
             id: 'C5'
 		}, {
-            data: [[0,0]],
+            data: [[0,36]],
 			name: 'Channel 6',
             type: 'line',
             id: 'C6'
 		}, {
+            data: [[0,43]],
 			name: 'Channel 7',
             type: 'line',
             id: 'C7'
 		}, {
-            data: [[0,0]],
+            data: [[0,50]],
 			name: 'Channel 8',
             type: 'line',
             id: 'C8'
@@ -276,7 +277,7 @@ function updateAnnotation(width, height, text, fontSize, index, titleColor, x){
 
 function clearAllSeries() {
     for (var n = 0; n < getChart().series.length; ++n) {
-        getChart().series[n].setData([[0,0]], false);
+        getChart().series[n].setData([[0, 7*n+1 ]], false);
     }
     redrawChart();
 }

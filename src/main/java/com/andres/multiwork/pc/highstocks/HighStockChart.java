@@ -115,6 +115,10 @@ public class HighStockChart {
         this.seriesLegendShiftClick = seriesLegendShiftClick;
     }
 
+    public void setSeriesName(String name, int index){
+        webEngine.executeScript("getChart().series[" + index + "].update({ name:'" + name + "' })");
+    }
+
     public void setAnnotationEvent(AnnotationEvent annotationEvent) {
         this.annotationEvent = annotationEvent;
     }

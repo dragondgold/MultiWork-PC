@@ -15,6 +15,8 @@ import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 
 import java.util.List;
 import java.util.Timer;
@@ -42,7 +44,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
     final double yIncrement = 2;
 
     private final double initTime = 0;
-    private final int annotationsPerCycle = 5;
+    private final int annotationsPerCycle = 20;
 
     private Tooltip tooltip = new Tooltip();
 
@@ -58,6 +60,16 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             mainChart.setTitle(GlobalValues.resourceBundle.getString("chartTitle"), "");
             mainChart.setXAxisLabel(GlobalValues.resourceBundle.getString("chartXAxis") + " [μS]");
             mainChart.setYAxisLabel(GlobalValues.resourceBundle.getString("chartYAxis"));
+
+            updateSeriesLabels();
+        });
+
+        // Update series labels according to protocols when settings change
+        GlobalValues.xmlSettings.addConfigurationListener(configurationEvent -> {
+            // There was a change in protocols
+            if(configurationEvent.getPropertyName().contains("protocol")){
+                updateSeriesLabels();
+            }
         });
 
         setScene(new Scene(pane, width, height));
@@ -326,7 +338,6 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
                 }
             }
         }.start();
-
     }
 
     private boolean allChecked(boolean[] data){
@@ -334,6 +345,42 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             if (!aData) return false;
         }
         return true;
+    }
+
+    private void updateSeriesLabels(){
+        for(int n = 0; n < GlobalValues.channelsNumber; ++n){
+            String s;
+            switch (GlobalValues.xmlSettings.getInt("protocol" + n, GlobalValues.uartProtocol)){
+                case GlobalValues.uartProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "UART";
+                    break;
+
+                case GlobalValues.i2cProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "I2C";
+                    break;
+
+                case GlobalValues.spiProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "SPI";
+                    break;
+
+                case GlobalValues.clockProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "Clock";
+                    break;
+
+                case GlobalValues.oneWireProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "1-Wire";
+                    break;
+
+                case GlobalValues.channelDisabled:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "NC";
+                    break;
+
+                default:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1);
+                    break;
+            }
+            mainChart.setSeriesName(s, n);
+        }
     }
 
     @Override

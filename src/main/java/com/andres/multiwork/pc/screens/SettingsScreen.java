@@ -12,6 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,9 +59,17 @@ public class SettingsScreen extends MultiWorkScreen {
             settingsPaneList.add(new GeneralPane(GENERAL_SETTINGS, fxmlLoader));
 
             setScene(new Scene(mainScreen, width, height));
+            stage.setTitle(GlobalValues.xmlSettings.getString("menuSettings"));
 
             buildReferences();
             initialize();
+
+            GlobalValues.xmlSettings.addConfigurationListener(configurationEvent -> {
+                // There was a change in protocols
+                if(configurationEvent.getPropertyName().contains("protocol")){
+                    updateArrayListNames();
+                }
+            });
 
             // Notify panes that channel number changed!
             for (SettingsPane p : settingsPaneList){
@@ -132,14 +142,7 @@ public class SettingsScreen extends MultiWorkScreen {
      * Init elements with corresponding texts and items
      */
     private void initialize() {
-        // Channels list
-        ObservableList<String> channelsList = FXCollections.observableArrayList();
-        channelsList.add(GlobalValues.resourceBundle.getString("general"));
-        for(int n = 1; n <= GlobalValues.channelsNumber; ++n){
-            channelsList.add(GlobalValues.resourceBundle.getString("channel") + " " + n);
-        }
-
-        listView.setItems(channelsList);
+        updateArrayListNames();
         listView.getSelectionModel().select(1);     // Select the first channel
         listView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
             if(newValue.contains(GlobalValues.resourceBundle.getString("general"))){
@@ -147,8 +150,9 @@ public class SettingsScreen extends MultiWorkScreen {
                 return;
             }
 
-            // Channels go from 0 to (GlobalValues.channelsNumber-1)
-            int index = Character.getNumericValue(newValue.charAt(newValue.length() - 1));
+            // Channels go from 0 to (GlobalValues.channelsNumber-1). Remove all non-numbers.
+            String channel = newValue.substring(0, newValue.indexOf('-'));
+            int index = Integer.valueOf(channel.replaceAll("[^0-9]", ""));
             currentChannel = index - 1;
             loadChannelSettings(currentChannel);
 
@@ -175,6 +179,47 @@ public class SettingsScreen extends MultiWorkScreen {
         // Show screen
         defineChangeListeners();
         loadChannelSettings(currentChannel);
+    }
+
+    private void updateArrayListNames(){
+        // Channels list
+        ObservableList<String> channelsList = FXCollections.observableArrayList();
+        channelsList.add(GlobalValues.resourceBundle.getString("general"));
+
+        for(int n = 0; n < GlobalValues.channelsNumber; ++n){
+            String s;
+            switch (GlobalValues.xmlSettings.getInt("protocol" + n, GlobalValues.uartProtocol)){
+                case GlobalValues.uartProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "UART";
+                    break;
+
+                case GlobalValues.i2cProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "I2C";
+                    break;
+
+                case GlobalValues.spiProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "SPI";
+                    break;
+
+                case GlobalValues.clockProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "Clock";
+                    break;
+
+                case GlobalValues.oneWireProtocol:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "1-Wire";
+                    break;
+
+                case GlobalValues.channelDisabled:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1) + " - " + "NC";
+                    break;
+
+                default:
+                    s = GlobalValues.resourceBundle.getString("channel") + " " + (n+1);
+                    break;
+            }
+            channelsList.add(s);
+        }
+        listView.setItems(channelsList);
     }
 
     /**

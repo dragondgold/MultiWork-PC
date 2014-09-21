@@ -18,5 +18,5 @@
 <font>
 <Font name="Calibri" size="14.0" />
 </font>
-</Label><ChoiceBox fx:id="sampleRateChoice" layoutX="107.0" layoutY="36.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="120.0" />
+</Label><ChoiceBox fx:id="sampleRateChoice" layoutX="107.0" layoutY="36.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="120.0" /><CheckBox fx:id="debugModeCheck" layoutX="494.0" layoutY="518.0" mnemonicParsing="false" text="Debug Mode" />
 </children></AnchorPane>

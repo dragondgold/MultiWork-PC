@@ -17,9 +17,11 @@ public class GeneralPane extends SettingsPane{
 
     private ChoiceBox<Integer> sampleRateChoice;
     private CheckBox simpleTriggerGeneral;
+    private CheckBox debugModeCheck;
 
     private ChangeListener<Integer> sampleRateChangeListener;
     private ChangeListener<Boolean> simpleTriggerGeneralListener;
+    private ChangeListener<Boolean> debugModeListener;
 
     private FXMLLoader fxmlLoader;
 
@@ -32,6 +34,7 @@ public class GeneralPane extends SettingsPane{
 
             sampleRateChoice = (ChoiceBox<Integer>)getPane().lookup("#sampleRateChoice");
             simpleTriggerGeneral = (CheckBox) getPane().lookup("#simpleTriggerGeneral");
+            debugModeCheck = (CheckBox) getPane().lookup("#debugModeCheck");
 
             // Sample Rate
             ObservableList<Integer> sampleRateList = FXCollections.observableArrayList();
@@ -45,10 +48,13 @@ public class GeneralPane extends SettingsPane{
             sampleRateChoice.setItems(sampleRateList);
 
             sampleRateChangeListener = (observableValue, integer, newValue) ->
-                    GlobalValues.xmlSettings.setProperty("sampleRate", newValue);
+                GlobalValues.xmlSettings.setProperty("sampleRate", newValue);
 
             simpleTriggerGeneralListener = (observable, oldValue, newValue) ->
-                    GlobalValues.xmlSettings.setProperty("simpleTriggerGeneral", newValue);
+                GlobalValues.xmlSettings.setProperty("simpleTriggerGeneral", newValue);
+
+            debugModeListener = (observable, oldValue, newValue) ->
+                GlobalValues.xmlSettings.setProperty("debugMode", newValue);
 
         } catch (IOException e) { e.printStackTrace(); }
     }
@@ -57,12 +63,15 @@ public class GeneralPane extends SettingsPane{
     public void enable() {
         int sampleRate = GlobalValues.xmlSettings.getInt("sampleRate", 4000000);
         boolean simpleTrigger = GlobalValues.xmlSettings.getBoolean("simpleTriggerGeneral", false);
+        boolean debugMode = GlobalValues.xmlSettings.getBoolean("debugMode", false);
 
         sampleRateChoice.setValue(sampleRate);
         simpleTriggerGeneral.setSelected(simpleTrigger);
+        debugModeCheck.setSelected(debugMode);
 
         sampleRateChoice.getSelectionModel().selectedItemProperty().addListener(sampleRateChangeListener);
         simpleTriggerGeneral.selectedProperty().addListener(simpleTriggerGeneralListener);
+        debugModeCheck.selectedProperty().addListener(debugModeListener);
 
         ((Pane)fxmlLoader.getNamespace().get("generalPane")).setDisable(true);
     }
@@ -71,6 +80,7 @@ public class GeneralPane extends SettingsPane{
     public void disable() {
         sampleRateChoice.getSelectionModel().selectedItemProperty().removeListener(sampleRateChangeListener);
         simpleTriggerGeneral.selectedProperty().removeListener(simpleTriggerGeneralListener);
+        debugModeCheck.selectedProperty().removeListener(debugModeListener);
 
         ((Pane)fxmlLoader.getNamespace().get("generalPane")).setDisable(false);
     }

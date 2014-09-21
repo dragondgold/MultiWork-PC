@@ -169,28 +169,27 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
         /** Events */
         menuItemSettings.setOnAction(actionEvent -> GlobalValues.screenManager.show("SettingsScreen"));
-        menuItemImport.setOnAction(actionEvent -> {
-            GlobalValues.screenManager.show("ImportScreen");
-        });
+        menuItemImport.setOnAction(actionEvent -> GlobalValues.screenManager.show("ImportScreen"));
 
         menuItemCaptureAnalyzer.setOnAction(actionEvent -> {
-            //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
+            if(!GlobalValues.xmlSettings.getBoolean("debugMode", false)) {
+                //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
+            }else {
+                mainChart.clearAllSeries();
+                mainChart.removeAllAnnotations();
 
-            mainChart.clearAllSeries();
-            mainChart.removeAllAnnotations();
+                // I2C Sample data
+                LogicBitSet data, clk;
+                data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 40);
+                clk = LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 40);
 
-            // I2C Sample data
-            LogicBitSet data, clk;
-            data = LogicHelper.bitParser("100 11010010011100101 0 11010011110000111 0 11010011110000111 1 0011", 5, 40);
-            clk = LogicHelper.bitParser("110 01010101010101010 1 01010101010101010 1 01010101010101010 1 0111", 5, 40);
-
-            byte[] buffer = Decoder.bitSetToBuffer(data, clk);
-            decoder.setRawData(buffer);
-            // Set the same sample frequency for all the channels
-            decoder.setSampleFrequency(GlobalValues.xmlSettings.getInt("sampleRate", 4000000));
-            decoder.decodeAll();
-
-            updateChart(false);
+                byte[] buffer = Decoder.bitSetToBuffer(data, clk);
+                decoder.setRawData(buffer);
+                // Set the same sample frequency for all the channels
+                decoder.setSampleFrequency(GlobalValues.xmlSettings.getInt("sampleRate", 4000000));
+                decoder.decodeAll();
+                updateChart(false);
+            }
         });
 
         menuItemAnalyzer.setOnAction(actionEvent -> {
@@ -217,7 +216,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
         // New data received!
         onNewDataReceived = (data, inputStream, outputStream, source) -> {
-            System.out.println("Data received!");
+            System.out.println("Data received from " + source);
 
             // Set the same sample frequency for all the channels
             decoder.setSampleFrequency(GlobalValues.xmlSettings.getInt("sampleRate", 4000000));

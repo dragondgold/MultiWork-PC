@@ -15,8 +15,6 @@ import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 
 import java.util.List;
 import java.util.Timer;
@@ -47,15 +45,16 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
     private final int annotationsPerCycle = 20;
 
     private Tooltip tooltip = new Tooltip();
+    private Pane mainPane;
 
     public LogicAnalyzerChartScreen(final Stage stage, final int width, final int height){
         super(stage);
 
-        Pane pane = new Pane();
+        mainPane = new Pane();
         menuBar = new MenuBar();
-        pane.getChildren().addAll(menuBar);
+        mainPane.getChildren().addAll(menuBar);
 
-        mainChart = new HighStockChart(pane);
+        mainChart = new HighStockChart(mainPane);
         mainChart.setOnChartLoaded(() -> {
             mainChart.setTitle(GlobalValues.resourceBundle.getString("chartTitle"), "");
             mainChart.setXAxisLabel(GlobalValues.resourceBundle.getString("chartXAxis") + " [μS]");
@@ -72,7 +71,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             }
         });
 
-        setScene(new Scene(pane, width, height));
+        setScene(GlobalValues.screenManager.getMainScene());
         buildMenu();
         buildSeriesContextMenu();
 
@@ -384,6 +383,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
     @Override
     public void show(){
+        GlobalValues.screenManager.setMainPane(mainPane);
         getStage().setScene(getScene());
         getStage().show();
 

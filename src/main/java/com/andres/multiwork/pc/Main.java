@@ -5,9 +5,12 @@ import com.andres.multiwork.pc.screens.*;
 import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.andres.multiwork.pc.utils.BuildProcedure;
 import com.andres.multiwork.pc.utils.ScreenManager;
+import com.andres.multiwork.pc.utils.SideBar;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -20,6 +23,8 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class Main extends Application {
+
+    private SideBar sideBar;
 
     @Override
     public void start(final Stage primaryStage) throws Exception{
@@ -40,7 +45,6 @@ public class Main extends Application {
         if(!new File("settings.xml").exists()){
             GlobalValues.xmlSettings.save();
         }
-
         GlobalValues.xmlSettings.load();
         GlobalValues.xmlSettings.setAutoSave(true);
 
@@ -51,8 +55,15 @@ public class Main extends Application {
         GlobalValues.multiConnectionManager = new MultiConnectionManager();
         //GlobalValues.connectionManager.connectByBluetooth();
 
+        // Generate main scene
+        BorderPane borderPane = new BorderPane();
+        sideBar = new SideBar(250, new Pane());
+        borderPane.setLeft(sideBar);
+        GlobalValues.screenManager = new ScreenManager( borderPane,
+                                                        new Scene(borderPane, GlobalValues.screenWidth, GlobalValues.screenHeight));
+        primaryStage.setScene(GlobalValues.screenManager.getMainScene());
+
         // Screen Manager
-        GlobalValues.screenManager = new ScreenManager();
         GlobalValues.screenManager.addScreen("SettingsScreen", new BuildProcedure() {
             @Override
             public MultiWorkScreen build() {
@@ -133,7 +144,7 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(event -> {
             System.out.println("Exiting app!");
             GlobalValues.multiConnectionManager.exitMode();
-            com.sun.javafx.application.PlatformImpl.tkExit();
+            com.sun.javafx.application.PlatformImpl.exit();
         });
     }
 

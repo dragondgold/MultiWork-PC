@@ -40,7 +40,7 @@ public class MultiWorkImporter implements Importer {
             for(String[] line : data){
                 switch (line[0]) {
                     case "Sample Rate":
-                        decoder.setSampleFrequency(Long.valueOf(line[1]), channelNumber);
+                        decoder.setSampleFrequency(Long.parseLong(line[1]), channelNumber);
                         sampleRateDefined = true;
                         break;
 
@@ -51,7 +51,7 @@ public class MultiWorkImporter implements Importer {
                     // Read sample data
                     default:
                         try {
-                            logicBitSet.set(Integer.valueOf(line[0]), line[1].equals("1"));
+                            logicBitSet.set(Integer.parseInt(line[0]), line[1].equals("1"));
                         } catch (NumberFormatException ignored){}
                         break;
                 }

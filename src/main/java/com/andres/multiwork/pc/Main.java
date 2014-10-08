@@ -15,8 +15,6 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.controlsfx.control.action.Action;
-import org.controlsfx.dialog.Dialogs;
 
 import java.io.File;
 import java.io.FileNotFoundException;

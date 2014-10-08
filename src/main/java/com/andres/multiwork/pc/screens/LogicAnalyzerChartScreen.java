@@ -9,7 +9,6 @@ import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.protocolanalyzer.api.*;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.Pane;

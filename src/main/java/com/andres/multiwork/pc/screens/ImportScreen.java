@@ -2,8 +2,6 @@ package com.andres.multiwork.pc.screens;
 
 import com.andres.multiwork.pc.GlobalValues;
 import com.andres.multiwork.pc.utils.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;

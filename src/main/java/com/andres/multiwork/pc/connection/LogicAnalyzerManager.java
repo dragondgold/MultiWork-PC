@@ -4,6 +4,8 @@ import com.andres.multiwork.pc.GlobalValues;
 import com.andres.multiwork.pc.utils.CRC16;
 import com.protocolanalyzer.api.LogicHelper;
 import com.protocolanalyzer.api.utils.ByteArrayBuffer;
+import javafx.application.Platform;
+import org.controlsfx.dialog.Dialogs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,7 +135,13 @@ public class LogicAnalyzerManager implements ConnectionManager {
                             while(!(inputStream.available() > 0)){
                                 // Timeout!
                                 if(timeOutCounter >= timeOutLimit){
-                                    // TODO: notify user
+                                    Platform.runLater(() -> {
+                                        Dialogs.create()
+                                                .title(GlobalValues.resourceBundle.getString("timeOutTitle"))
+                                                .masthead(GlobalValues.resourceBundle.getString("timeOutMasthead"))
+                                                .message(GlobalValues.resourceBundle.getString("timeOutMessage"))
+                                                .showWarning();
+                                    });
                                     System.out.println("Data waiting timeout");
                                     return;
                                 }

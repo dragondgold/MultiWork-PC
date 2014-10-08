@@ -2,18 +2,21 @@ package com.andres.multiwork.pc;
 
 import com.andres.multiwork.pc.connection.MultiConnectionManager;
 import com.andres.multiwork.pc.screens.*;
-import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.andres.multiwork.pc.utils.BuildProcedure;
+import com.andres.multiwork.pc.utils.MultiWorkScreen;
 import com.andres.multiwork.pc.utils.ScreenManager;
 import com.andres.multiwork.pc.utils.SideBar;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.controlsfx.control.action.Action;
+import org.controlsfx.dialog.Dialogs;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -139,6 +142,9 @@ public class Main extends Application {
         GlobalValues.screenManager.build("SettingsScreen");
         GlobalValues.screenManager.buildAndShowScreen("ChartScreen");
         GlobalValues.screenManager.build("RawDataScreen");
+
+        // Set icon
+        primaryStage.getIcons().add(new Image("icon.png"));
 
         // Close JavaFX application. Otherwise the UI is hidden but the process is still running in background
         primaryStage.setOnCloseRequest(event -> {

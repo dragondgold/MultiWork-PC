@@ -21,6 +21,8 @@
     <orderEntry type="library" name="Maven: commons-digester:commons-digester:1.8.1" level="project" />
     <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.8.3" level="project" />
     <orderEntry type="library" name="Maven: net.sf.opencsv:opencsv:2.0" level="project" />
+    <orderEntry type="library" name="Maven: org.controlsfx:controlsfx:8.20.7" level="project" />
+    <orderEntry type="library" name="Maven: org.controlsfx:openjfx-dialogs:1.0.2" level="project" />
     <orderEntry type="library" name="Maven: ProtocolAnalyzer:com.protocolanalyzer.api:1.0" level="project" />
     <orderEntry type="library" name="Maven: Bluecove:bluecove:1.0" level="project" />
   </component>

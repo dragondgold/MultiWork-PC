@@ -158,6 +158,7 @@ $(function() {
                 title: 'test',
                 anchorX: 'left',
                 anchorY: 'top',
+                allowDragX: true,
                 xValue: 1,
                 yValue: 1,
                 shape: {
@@ -169,6 +170,11 @@ $(function() {
                         y: 0,
                         width: 200,
                         height: 100
+                    }
+                },
+                events: {
+                    click: function(e) {
+                        alert('Annotation Click' + ',' + this.options.title);
                     }
                 }
             },

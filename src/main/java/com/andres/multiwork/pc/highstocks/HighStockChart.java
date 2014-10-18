@@ -5,8 +5,6 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
-import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -24,6 +22,7 @@ public class HighStockChart {
 
     private int defaultAnnotationFontSize = 10;
     private String defaultAnnotationTextColor = "white";
+    private String selectedAnnotationText = null;
 
     // Store position parameter of the added annotations. We need them to redraw the annotations in the chart
     //  every time zoom is changed because annotation width and height is on pixels so we need to update it to
@@ -43,6 +42,18 @@ public class HighStockChart {
             // Reload on size changed
             webView.heightProperty().addListener((observable, oldValue, newValue) -> webEngine.reload());
 
+            webView.setOnMouseClicked(event -> {
+                if(selectedAnnotationText != null){
+                    // Dispatch the annotation click event but we must first check if selectedAnnotationText is not null.
+                    // It will only be a valid string when clicking on an annotation because first we will get the
+                    //  WebEngine alert event and then the click event so we can get the click coordinates
+                    if (annotationEvent != null)
+                        annotationEvent.onAnnotationClicked(selectedAnnotationText, event.getScreenX(), event.getScreenY());
+
+                    selectedAnnotationText = null;
+                }
+            });
+
             // Listen for alert() events to communicate between Java and Javascript side
             webEngine.setOnAlert(event -> {
                 final String data = event.getData();
@@ -60,44 +71,14 @@ public class HighStockChart {
                 }else if(data.contains("Chart Redraw Event")){
                     updateAnnotations();
 
-                // TODO:
-                }else if(data.contains("Annotation Click")){
+                // Annotation click listener
+                }else if(data.contains("Annotation Click")) {
                     String[] result = data.split(",");
+
                     // If annotation text is set to "" then the second string at position [1]
-                    //  doesn't exists
-                    String text;
-                    if(result.length <= 1) text = "";
-                    else text = result[1];
-
-                    Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
-
-                    if(annotationEvent != null) annotationEvent.onAnnotationClicked(text, mouseLocation.getX(), mouseLocation.getY());
-
-                // TODO:
-                }else if(data.contains("Annotation Enter")){
-                    String[] result = data.split(",");
-                    // If annotation text is set to "" then the second string at position [1]
-                    //  doesn't exists
-                    String text;
-                    if(result.length <= 1) text = "";
-                    else text = result[1];
-
-                    Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
-
-                    if(annotationEvent != null) annotationEvent.onMouseEnter(text, mouseLocation.getX(), mouseLocation.getY());
-
-                // TODO:
-                }else if(data.contains("Annotation Out")){
-                    String[] result = data.split(",");
-                    // If annotation text is set to "" then the second string at position [1]
-                    //  doesn't exists
-                    String text;
-                    if(result.length <= 1) text = "";
-                    else text = result[1];
-
-                    Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
-
-                    if(annotationEvent != null) annotationEvent.onMouseOut(text, mouseLocation.getX(), mouseLocation.getY());
+                    //  doesn't exists.
+                    if (result.length <= 1) selectedAnnotationText = "";
+                    else selectedAnnotationText = result[1];
 
                 }else {
                     System.out.println(data);
@@ -235,8 +216,8 @@ public class HighStockChart {
                                                     "color: '" + textColor + "',\n" +
                                                 "}\n" +
                                             "},\n" +
-                                            "anchorX: \"left\",\n" +
-                                            "anchorY: \"top\",\n" +
+                                            "anchorX: 'left',\n" +
+                                            "anchorY: 'top',\n" +
                                             "allowDragY: " + dragY + ",\n" +
                                             "allowDragX: " + dragX + ",\n" +
                                             "xValue: " + x + ",\n" +
@@ -250,6 +231,12 @@ public class HighStockChart {
                                                     "y: 0,\n" +
                                                     "width: " + displayWidth + ",\n" +
                                                     "height: " + displayHeight + ",\n" +
+                                                "}\n" +
+                                            "},\n" +
+                                            // Annotation click event
+                                            "events: {\n" +
+                                                "click: function(e) {\n" +
+                                                    "alert('Annotation Click' + ',' + '" + text + "');\n" +
                                                 "}\n" +
                                             "}\n" +
                                         "})");

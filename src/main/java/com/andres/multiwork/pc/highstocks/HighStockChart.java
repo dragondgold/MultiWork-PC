@@ -48,7 +48,7 @@ public class HighStockChart {
                     // It will only be a valid string when clicking on an annotation because first we will get the
                     //  WebEngine alert event and then the click event so we can get the click coordinates
                     if (annotationEvent != null)
-                        annotationEvent.onAnnotationClicked(selectedAnnotationText, event.getScreenX(), event.getScreenY());
+                        annotationEvent.onAnnotationClicked(selectedAnnotationText, event.getX(), event.getY());
 
                     selectedAnnotationText = null;
                 }
@@ -79,6 +79,26 @@ public class HighStockChart {
                     //  doesn't exists.
                     if (result.length <= 1) selectedAnnotationText = "";
                     else selectedAnnotationText = result[1];
+
+                }else if(data.contains("Annotation Enter")){
+                    if (annotationEvent != null){
+                        String[] result = data.split(",");
+
+                        // If annotation text is set to "" then the second string at position [1]
+                        //  doesn't exists.
+                        if (result.length <= 1) annotationEvent.onEnterAnnotation("");
+                        else annotationEvent.onEnterAnnotation(result[1]);
+                    }
+
+                }else if(data.contains("Annotation Leave")){
+                    if (annotationEvent != null){
+                        String[] result = data.split(",");
+
+                        // If annotation text is set to "" then the second string at position [1]
+                        //  doesn't exists.
+                        if (result.length <= 1) annotationEvent.onLeaveAnnotation("");
+                        else annotationEvent.onLeaveAnnotation(result[1]);
+                    }
 
                 }else {
                     System.out.println(data);
@@ -237,6 +257,12 @@ public class HighStockChart {
                                             "events: {\n" +
                                                 "click: function(e) {\n" +
                                                     "alert('Annotation Click' + ',' + '" + text + "');\n" +
+                                                "},\n" +
+                                                "mouseenter: function(e) {\n" +
+                                                    "alert('Annotation Enter' + ',' + '" + text + "');\n" +
+                                                "},\n" +
+                                                "mouseleave: function(e) {\n" +
+                                                    "alert('Annotation Leave' + ',' + '" + text + "');\n" +
                                                 "}\n" +
                                             "}\n" +
                                         "})");

@@ -2,6 +2,8 @@ package com.andres.multiwork.pc.screens;
 
 import com.andres.multiwork.pc.GlobalValues;
 import com.andres.multiwork.pc.connection.OnNewDataReceived;
+import com.andres.multiwork.pc.highstocks.AnnotationEvent;
+import com.andres.multiwork.pc.highstocks.ChartTooltip;
 import com.andres.multiwork.pc.highstocks.HighStockChart;
 import com.andres.multiwork.pc.highstocks.SeriesLegendShiftClick;
 import com.andres.multiwork.pc.utils.Decoder;
@@ -11,7 +13,10 @@ import com.protocolanalyzer.api.LogicHelper;
 import com.protocolanalyzer.api.TimePosition;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
-import javafx.scene.control.*;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -47,9 +52,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
     private final double initTime = 0;
     private final int annotationsPerCycle = 20;
 
-    private Tooltip tooltip = new Tooltip();
+    private ChartTooltip tooltip = new ChartTooltip();
     private Pane mainPane;
-    private boolean annotationClicked = false;
 
     public LogicAnalyzerChartScreen(final Stage stage, final int width, final int height){
         super(stage);
@@ -66,6 +70,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
             updateSeriesLabels();
         });
+        mainPane.getChildren().add(tooltip);
 
         // Update series labels according to protocols when settings change
         GlobalValues.xmlSettings.addConfigurationListener(configurationEvent -> {
@@ -91,15 +96,22 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         });
 
         // Annotation events
-        mainChart.setAnnotationEvent((title, mouseX, mouseY) -> {
-            annotationClicked = true;
+        mainChart.setAnnotationEvent(new AnnotationEvent() {
+            @Override
+            public void onAnnotationClicked(String title, double mouseX, double mouseY) {
+                tooltip.setText("Data: " + title);
+                tooltip.show(mouseX, mouseY);
+            }
 
-            // Show tooltip on cursor location, first set text then position the tooltip otherwise
-            //  tooltip is showed in wrong places
-            tooltip.setText("Data: " + title);
-            tooltip.show(getStage(), mouseX, mouseY);
-            System.out.println("Tooltip show - " + mouseX + ":" + mouseY);
-            System.out.println("Annotation clicked - " + title);
+            @Override
+            public void onEnterAnnotation(String title) {
+
+            }
+
+            @Override
+            public void onLeaveAnnotation(String title) {
+                tooltip.hide();
+            }
         });
 
         // Hide Tooltip when pressing Escape key
@@ -107,15 +119,6 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
             if (event.getCode() == KeyCode.ESCAPE) {
                 tooltip.hide();
             }
-        });
-
-        // Hide tooltip when click somewhere outside an annotation
-        getScene().setOnMouseClicked(event -> {
-            if(!annotationClicked) {
-                tooltip.hide();
-                System.out.println("Tooltip hide");
-            }
-            annotationClicked = false;
         });
 
         // When import finishes redraw the chart with all the current data in the Decoder

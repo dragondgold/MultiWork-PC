@@ -174,7 +174,10 @@ $(function() {
                 },
                 events: {
                     click: function(e) {
-                        alert('Annotation Click' + ',' + this.options.title);
+                        alert('Annotation Click,', this.options.title);
+                    },
+                    mouseleave: function(e){
+                        alert('Annotation Leave,', this.options.title);
                     }
                 }
             },

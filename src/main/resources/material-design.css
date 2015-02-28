@@ -1,0 +1,8 @@
+.root {
+    -fx-font-family: "Unica One";
+}
+
+.menu:focused {
+    -fx-background-color:white;
+    -fx-focus-color:white;
+}

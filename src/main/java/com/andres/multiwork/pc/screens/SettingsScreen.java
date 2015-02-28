@@ -12,17 +12,17 @@ import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("unchecked")
 public class SettingsScreen extends MultiWorkScreen {
 
     private static final int GENERAL_SETTINGS = 1;
+    private static final int RIGOL_OSCILLOSCOPE = 2;
     private int currentChannel = 0;
 
     // Protocol
@@ -57,12 +57,14 @@ public class SettingsScreen extends MultiWorkScreen {
             settingsPaneList.add(new UARTPane(GlobalValues.uartProtocol));
             settingsPaneList.add(new SPIPane(GlobalValues.spiProtocol));
             settingsPaneList.add(new GeneralPane(GENERAL_SETTINGS, fxmlLoader));
+            settingsPaneList.add(new RigolScopePane(RIGOL_OSCILLOSCOPE, fxmlLoader));
 
             setScene(new Scene(mainScreen, width, height));
             stage.setTitle(GlobalValues.xmlSettings.getString("menuSettings"));
 
             buildReferences();
             initialize();
+            listView.getSelectionModel().select(2);     // Select the first channel
 
             GlobalValues.xmlSettings.addConfigurationListener(configurationEvent -> {
                 // There was a change in protocols
@@ -76,6 +78,11 @@ public class SettingsScreen extends MultiWorkScreen {
                 p.notifiyChannelChanged(currentChannel);
             }
             protocolToPane(GlobalValues.xmlSettings.getInt("protocol" + currentChannel, GlobalValues.uartProtocol));
+
+            // Disable all panes on close
+            stage.setOnCloseRequest(event -> {
+                for(SettingsPane p : settingsPaneList) p.disable();
+            });
         } catch (IOException e) { e.printStackTrace(); }
     }
 
@@ -83,7 +90,7 @@ public class SettingsScreen extends MultiWorkScreen {
      * Show the side pane corresponding to the current selected item
      */
     private void showPane(int pane){
-        // Disable de side pane if the channel is disabled of protocol is clock
+        // Disable the side pane if the channel is disabled or protocol is clock
         if(pane == GlobalValues.channelDisabled || pane == GlobalValues.clockProtocol) {
             ((SplitPane) fxmlLoader.getNamespace().get("splitPane")).getItems().get(1).setDisable(true);
         }
@@ -92,12 +99,12 @@ public class SettingsScreen extends MultiWorkScreen {
         }
 
         // Show and enable selected pane and disable all the others
+        for(SettingsPane p : settingsPaneList) p.disable();
         for(SettingsPane p : settingsPaneList){
             if(p.getID() == pane){
                 ((SplitPane)fxmlLoader.getNamespace().get("splitPane")).getItems().set(1, p.getPane());
                 p.enable();
-            }else{
-                p.disable();
+                break;
             }
         }
     }
@@ -143,10 +150,11 @@ public class SettingsScreen extends MultiWorkScreen {
      */
     private void initialize() {
         updateArrayListNames();
-        listView.getSelectionModel().select(1);     // Select the first channel
         listView.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
-            if(newValue.contains(GlobalValues.resourceBundle.getString("general"))){
-                showPane(GENERAL_SETTINGS);
+            // If it's not a channel, then let's see what other pane it is
+            if(!Pattern.compile("Channel [0-9]+").matcher(newValue).find()){
+                if(newValue.equals(GlobalValues.resourceBundle.getString("general"))) showPane(GENERAL_SETTINGS);
+                else if(newValue.equals(GlobalValues.resourceBundle.getString("rigolScope"))) showPane(RIGOL_OSCILLOSCOPE);
                 return;
             }
 
@@ -185,6 +193,7 @@ public class SettingsScreen extends MultiWorkScreen {
         // Channels list
         ObservableList<String> channelsList = FXCollections.observableArrayList();
         channelsList.add(GlobalValues.resourceBundle.getString("general"));
+        channelsList.add(GlobalValues.resourceBundle.getString("rigolScope"));
 
         for(int n = 0; n < GlobalValues.channelsNumber; ++n){
             String s;

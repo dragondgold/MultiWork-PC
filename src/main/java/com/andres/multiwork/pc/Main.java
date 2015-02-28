@@ -25,8 +25,6 @@ import java.util.ResourceBundle;
 
 public class Main extends Application {
 
-    private SideBar sideBar;
-
     @Override
     public void start(final Stage primaryStage) throws Exception{
         // Start screen maximized
@@ -54,12 +52,11 @@ public class Main extends Application {
 
         // Create connection manager and connect by bluetooth
         GlobalValues.multiConnectionManager = new MultiConnectionManager();
-        //GlobalValues.connectionManager.connectByBluetooth();
 
         // Generate main scene
         BorderPane borderPane = new BorderPane();
-        sideBar = new SideBar(250, new Pane());
-        borderPane.setLeft(sideBar);
+        SideBar sideBar = new SideBar(250, new Pane());
+        //borderPane.setLeft(sideBar);
         GlobalValues.screenManager = new ScreenManager( borderPane,
                                                         new Scene(borderPane, GlobalValues.screenWidth, GlobalValues.screenHeight));
         primaryStage.setScene(GlobalValues.screenManager.getMainScene());
@@ -147,7 +144,6 @@ public class Main extends Application {
         // Close JavaFX application. Otherwise the UI is hidden but the process is still running in background
         primaryStage.setOnCloseRequest(event -> {
             System.out.println("Exiting app!");
-            GlobalValues.multiConnectionManager.exitMode();
             com.sun.javafx.application.PlatformImpl.exit();
         });
     }

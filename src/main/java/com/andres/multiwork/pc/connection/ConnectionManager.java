@@ -1,9 +1,14 @@
 package com.andres.multiwork.pc.connection;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+public interface ConnectionManager<I, O> {
 
-public interface ConnectionManager {
+    public enum CaptureType {
+        LOGIC_ANALYZER, FRECUENCIMETER
+    }
+
+    public enum DeviceType {
+        USB, BLUETOOTH, RIGOL_SCOPE, ANOTHER_SCOPE
+    }
 
     /**
      * Starts a capture from the hardware, example: logic analyzer, frecuencimeter, etc.
@@ -13,17 +18,17 @@ public interface ConnectionManager {
     /**
      * Used when new data arrives from whatever protocol we choose
      */
-    public void onNewDataReceived(InputStream input, OutputStream output);
+    public void onNewDataReceived(I input, O output);
 
-    /**
-     * Indicates what mode we are entering to the hardware
-     */
-    public void enterMode();
+    public byte[] getData();
 
-    /**
-     * Indicates we are leaving the current mode
-     */
-    public void exitMode();
+    public void setStreams(O outputStream, I inputStream);
 
-    public String getID();
+    public I getInputStream();
+
+    public O getOutputStream();
+
+    public CaptureType getCaptureType();
+
+    public DeviceType getDeviceType();
 }

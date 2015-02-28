@@ -20,7 +20,7 @@ public class I2CPane extends SettingsPane {
         super(id);
 
         try {
-            setPane(FXMLLoader.load(SettingsScreen.class.getResource("/LogicAnalyzerSettings/PaneI2C.fxml")));
+            setPane(FXMLLoader.load(getClass().getResource("/LogicAnalyzerSettings/PaneI2C.fxml")));
 
             // Clock selector
             choiceClockChannel = (ChoiceBox<String>)getPane().lookup("#choiceClockChannel");

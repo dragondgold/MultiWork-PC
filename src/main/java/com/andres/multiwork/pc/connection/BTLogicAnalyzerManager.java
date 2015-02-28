@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class LogicAnalyzerManager implements ConnectionManager {
+public class BTLogicAnalyzerManager implements ConnectionManager<InputStream,OutputStream> {
 
     private static final byte F40MHz =  'A';
     private static final byte F20MHz =  'S';
@@ -25,19 +25,18 @@ public class LogicAnalyzerManager implements ConnectionManager {
     private static final byte RETRY_BYTE = 'R';
 
     private static final byte LOGIC_ANALYZER_MODE = 'L';
-    private static final byte EXIT = 0;
 
     // Time in mS to abort data waiting. Timeout is timeOutLimit*30mS
     private static final int timeOutLimit = 67;
 
     private boolean receivedModeResponse = false;
-    private byte[] dataBuffer;
+    private byte[] dataBuffer = new byte[0];
     private OnNewDataReceived onDataReceived;
 
     private InputStream inputStream;
     private OutputStream outputStream;
 
-    public LogicAnalyzerManager(InputStream inputStream, OutputStream outputStream, OnNewDataReceived onNewDataReceived) {
+    public BTLogicAnalyzerManager(InputStream inputStream, OutputStream outputStream, OnNewDataReceived onNewDataReceived) {
         onDataReceived = onNewDataReceived;
         this.inputStream = inputStream;
         this.outputStream = outputStream;
@@ -45,6 +44,7 @@ public class LogicAnalyzerManager implements ConnectionManager {
 
     @Override
     public void startCapture() {
+        if(inputStream == null || outputStream == null) return;
         try {
             outputStream.write(1);
             int sampleRate = GlobalValues.xmlSettings.getInt("sampleRate", 4000000);
@@ -79,23 +79,34 @@ public class LogicAnalyzerManager implements ConnectionManager {
     }
 
     @Override
-    public void enterMode() {
-        try {
-            outputStream.write(LOGIC_ANALYZER_MODE);
-        } catch (IOException e) { e.printStackTrace(); }
+    public byte[] getData() {
+        return dataBuffer;
     }
 
     @Override
-    public void exitMode() {
-        try {
-            outputStream.write(EXIT);
-            receivedModeResponse = false;
-        } catch (IOException e) { e.printStackTrace(); }
+    public void setStreams(OutputStream outputStream, InputStream inputStream) {
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
     }
 
     @Override
-    public String getID() {
-        return "Logic Analyzer";
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+
+    @Override
+    public OutputStream getOutputStream() {
+        return outputStream;
+    }
+
+    @Override
+    public CaptureType getCaptureType() {
+        return CaptureType.LOGIC_ANALYZER;
+    }
+
+    @Override
+    public DeviceType getDeviceType() {
+        return DeviceType.BLUETOOTH;
     }
 
     public byte[] getDataBuffer(){
@@ -195,7 +206,7 @@ public class LogicAnalyzerManager implements ConnectionManager {
                         }
 
                         if(!retry){
-                            onDataReceived.onNewDataReceived(dataBuffer, inputStream, outputStream, "LogicAnalyzer");
+                            onDataReceived.onNewDataReceived(dataBuffer, getCaptureType(), getDeviceType());
                             return;
                         }
                     }

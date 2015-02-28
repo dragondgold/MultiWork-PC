@@ -1,6 +1,7 @@
 package com.andres.multiwork.pc.screens;
 
 import com.andres.multiwork.pc.GlobalValues;
+import com.andres.multiwork.pc.connection.ConnectionManager;
 import com.andres.multiwork.pc.connection.OnNewDataReceived;
 import com.andres.multiwork.pc.highstocks.AnnotationEvent;
 import com.andres.multiwork.pc.highstocks.ChartTooltip;
@@ -23,6 +24,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import jvisa.JVisaException;
+import org.controlsfx.dialog.Dialogs;
 
 import java.util.List;
 import java.util.Timer;
@@ -39,7 +42,6 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
     private final Decoder decoder = Decoder.getDecoder().setSettings(GlobalValues.xmlSettings);
 
-    /** Series click listener */
     private OnNewDataReceived onNewDataReceived;
 
     /** Series context menu on click */
@@ -61,6 +63,8 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         mainPane = new Pane();
         menuBar = new MenuBar();
         mainPane.getChildren().addAll(menuBar);
+        stage.setTitle(GlobalValues.resourceBundle.getString("logicAnalyzer")
+                + " - " + GlobalValues.resourceBundle.getString("notConnected"));
 
         mainChart = new HighStockChart(mainPane);
         mainChart.setOnChartLoaded(() -> {
@@ -131,7 +135,7 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
 
         // Load font and CSS file to apply it to the current scene
         Font.loadFont(LogicAnalyzerChartScreen.class.getResource("/UnicaOne-Regular.ttf").toExternalForm(), 12);
-        getScene().getStylesheets().add(LogicAnalyzerChartScreen.class.getResource("/myStyle.css").toExternalForm());
+        getScene().getStylesheets().add(LogicAnalyzerChartScreen.class.getResource("/material-design.css").toExternalForm());
     }
 
     /**
@@ -156,25 +160,30 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         MenuItem menuItemFullscreen = new MenuItem(GlobalValues.resourceBundle.getString("menuFullscreen"));
         menuItemFullscreen.setAccelerator(fullScreenCombination);
 
+        // Connect menu
+        Menu menuConnect = new Menu(GlobalValues.resourceBundle.getString("menuConnect"));
+        MenuItem menuItemConnectBT = new MenuItem(GlobalValues.resourceBundle.getString("menuConnectBT"));
+        MenuItem menuItemConnectUSB = new MenuItem(GlobalValues.resourceBundle.getString("menuConnectUSB"));
+        MenuItem menuItemConnectRigol = new MenuItem(GlobalValues.resourceBundle.getString("menuConnectRigol"));
+            //Not implemented yet
+            menuItemConnectBT.setDisable(true);
+            menuItemConnectUSB.setDisable(true);
+
         // Add items to Menus
-        menuFile.getItems().add(menuItemSettings);
-        menuFile.getItems().add(menuItemImport);
-
-        menuAnalyzer.getItems().add(menuItemCaptureAnalyzer);
-        menuAnalyzer.getItems().add(menuItemAnalyzer);
-
-        menuView.getItems().add(menuItemFullscreen);
+        menuFile.getItems().addAll(menuItemSettings, menuItemImport);
+        menuAnalyzer.getItems().addAll(menuItemCaptureAnalyzer, menuItemAnalyzer);
+        menuView.getItems().addAll(menuItemFullscreen);
+        menuConnect.getItems().addAll(menuItemConnectBT, menuItemConnectUSB, menuItemConnectRigol);
 
         // Add Menu to MenuBar
-        menuBar.getMenus().addAll(menuFile, menuAnalyzer, menuView);
+        menuBar.getMenus().addAll(menuFile, menuAnalyzer, menuView, menuConnect);
 
         /** Events */
         menuItemSettings.setOnAction(actionEvent -> GlobalValues.screenManager.show("SettingsScreen"));
         menuItemImport.setOnAction(actionEvent -> GlobalValues.screenManager.show("ImportScreen"));
-
         menuItemCaptureAnalyzer.setOnAction(actionEvent -> {
             if(!GlobalValues.xmlSettings.getBoolean("debugMode", false)) {
-                //GlobalValues.multiConnectionManager.getManager("Logic Analyzer").startCapture();
+                GlobalValues.multiConnectionManager.startCapture(ConnectionManager.CaptureType.LOGIC_ANALYZER);
             }else {
                 mainChart.clearAllSeries();
                 mainChart.removeAllAnnotations();
@@ -204,23 +213,48 @@ public class LogicAnalyzerChartScreen extends MultiWorkScreen {
         menuItemFullscreen.setOnAction(actionEvent -> getStage().setFullScreen(true));
 
         // Remove listener and exit mode when we close the window
-        getStage().setOnHiding(event -> {
-            GlobalValues.multiConnectionManager.removeDataReceivedListener(onNewDataReceived);
-            GlobalValues.multiConnectionManager.exitMode();
-        });
-
+        getStage().setOnHiding(event -> GlobalValues.multiConnectionManager.removeDataReceivedListener(onNewDataReceived));
         // Add listener when showing window
-        getStage().setOnShowing(event -> {
-            GlobalValues.multiConnectionManager.addDataReceivedListener(onNewDataReceived);
-            GlobalValues.multiConnectionManager.enterMode("Logic Analyzer");
+        getStage().setOnShowing(event -> GlobalValues.multiConnectionManager.addDataReceivedListener(onNewDataReceived));
+
+        menuItemConnectRigol.setOnAction(event -> {
+            // Connect with the Rigol scope, show a dialog if we couldn't connect
+            try { GlobalValues.multiConnectionManager.connectWithOscilloscope(); }
+            catch (JVisaException e) {
+                Dialogs.create()
+                        .title(GlobalValues.resourceBundle.getString("cantConnectRigolTitle"))
+                        .masthead(GlobalValues.resourceBundle.getString("cantConnectRigolMasthead"))
+                        .message(GlobalValues.resourceBundle.getString("cantConnectRigolMessage"))
+                        .showException(e);
+
+                getStage().setTitle(GlobalValues.resourceBundle.getString("logicAnalyzer")
+                        + " - " + GlobalValues.resourceBundle.getString("notConnected"));
+                return;
+            }
+
+            // If we connected successfully modify the stage title
+            getStage().setTitle(GlobalValues.resourceBundle.getString("logicAnalyzer")
+                    + " - " + GlobalValues.resourceBundle.getString("connectedToRigol"));
         });
 
         // New data received!
-        onNewDataReceived = (data, inputStream, outputStream, source) -> {
-            System.out.println("Data received from " + source);
+        onNewDataReceived = (data, captureType, deviceType) -> {
+            System.out.println("Data of " + captureType + " received from " + deviceType);
+
+            mainChart.clearAllSeries();
+            mainChart.removeAllAnnotations();
 
             // Set the same sample frequency for all the channels
-            decoder.setSampleFrequency(GlobalValues.xmlSettings.getInt("sampleRate", 4000000));
+            long sampleRate = GlobalValues.multiConnectionManager.getCurrentSampleRate();
+            if(GlobalValues.multiConnectionManager.getCurrentDeviceType() != ConnectionManager.DeviceType.RIGOL_SCOPE)
+                decoder.setSampleFrequency(sampleRate);
+            else {
+                if(GlobalValues.xmlSettings.getBoolean("rigolCH1Enable", false))
+                    decoder.setSampleFrequency(sampleRate, 0);
+                if(GlobalValues.xmlSettings.getBoolean("rigolCH2Enable", false))
+                    decoder.setSampleFrequency(sampleRate, 1);
+            }
+
             decoder.setRawData(data);
             decoder.decodeAll();
             updateChart(false);
